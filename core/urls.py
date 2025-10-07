@@ -1,6 +1,6 @@
 from django.urls import path
-from .views import home, SignUpView, LoginView, logout_view, freelancer_dashboard, create_freelancer_profile ,recruiter_dashboard, recruiter_profile_edit,manage_job, recruited_job_list, job_list, job_detail,view_job_applications,update_application_status, apply_to_job, parse_resume_view , delete_account_view , remove_freelancer_skill,get_freelancer_ats_view
-
+from .views import home, SignUpView, LoginView, logout_view, freelancer_dashboard,create_freelancer_profile ,recruiter_dashboard, recruiter_profile_edit,manage_job, recruited_job_list, job_list, job_detail,view_job_applications,update_application_status, apply_to_job, parse_resume_view , delete_account_view , remove_freelancer_skill,get_freelancer_ats_view ,add_freelancer_skill
+from . import views
 urlpatterns = [
     path('', home, name='home'),
     path('signup/', SignUpView.as_view(), name='signup'),
@@ -22,7 +22,8 @@ urlpatterns = [
     path('account/delete/', delete_account_view, name='delete_account'),
     path('profile/remove-skill' , remove_freelancer_skill , name='remove_freelancer_skill'),
     path('jobs/<int:job_id>/get-ats-score/', get_freelancer_ats_view, name='get_freelancer_ats'),
-    
+    path('profile/skill/add/', views.add_freelancer_skill, name='add_freelancer_skill'),    
+
 ]
 
 from django.conf import settings

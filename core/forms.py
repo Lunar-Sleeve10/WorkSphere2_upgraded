@@ -7,7 +7,7 @@ from .models import User, FreelancerData, Skill, RecruiterData, Job
 
 class SignUpForm(UserCreationForm):
     type = forms.ChoiceField(choices = [('freelancer','Freelancer'),('recruiter','Recruiter')], required= True)
-                                
+
     class Meta:
         model = User
         fields = ('username','password2')
@@ -22,7 +22,7 @@ class SignUpForm(UserCreationForm):
         if commit:
             user.save()
         return user
-    
+
 
 class LoginForm(AuthenticationForm):
     class Meta:
@@ -35,12 +35,11 @@ class FreelancerDataForm(forms.ModelForm):
     skills = forms.CharField(
         required=False,
         widget=forms.TextInput(attrs={'placeholder': 'e.g., Python, Django, React (comma-separated)'}),
-        help_text="Enter skills separated by commas. Add new skills here."
+        help_text="Enter skills separated by commas."
     )
 
     class Meta:
         model = FreelancerData
-        # --- ADDED FIELDS START ---
         fields = [
             'first_name',
             'last_name',
@@ -55,29 +54,23 @@ class FreelancerDataForm(forms.ModelForm):
             'profile_picture',
             'skills',
         ]
-        # --- ADDED FIELDS END ---
         widgets = {
             'profile_summary': forms.Textarea(attrs={'rows': 4}),
-            # --- ADDED WIDGETS START ---
             'email': forms.EmailInput(attrs={'placeholder': 'e.g., your.email@example.com'}),
             'linkedin_url': forms.URLInput(attrs={'placeholder': 'e.g., https://www.linkedin.com/in/yourprofile'}),
-            # --- ADDED WIDGETS END ---
         }
 
     def __init__(self, *args, **kwargs):
         instance = kwargs.get('instance', None)
         super().__init__(*args, **kwargs)
         if instance and instance.pk:
-            # Pre-fill skills as a comma-separated string for editing
+            # Correctly display existing skills as a simple comma-separated string
             skill_names = [skill.name for skill in instance.skills.all()]
             self.fields['skills'].initial = ', '.join(skill_names)
-        else:
-            self.fields['skills'].initial = ''
-
 
     def save(self, commit=True):
         instance = super().save(commit=False)
-        
+
         # This custom save handles the string-based skills input
         if commit:
             instance.save()
@@ -85,8 +78,7 @@ class FreelancerDataForm(forms.ModelForm):
             # Save the M2M relationship for skills from the text input
             submitted_skill_names_str = self.cleaned_data.get('skills', '')
             submitted_skill_names = {name.strip().lower() for name in submitted_skill_names_str.split(',') if name.strip()}
-            
-            # Clear existing skills and add the new set
+
             instance.skills.clear()
             for name in submitted_skill_names:
                 skill_obj, created = Skill.objects.get_or_create(name=name)
@@ -94,13 +86,13 @@ class FreelancerDataForm(forms.ModelForm):
         
         # This is required by Django's ModelForm save method convention
         self.save_m2m = lambda: None
-
+        
         return instance
 
 
 
 class RecruiterDataForm(forms.ModelForm):
-    
+
     class Meta:
         model = RecruiterData
 
@@ -117,7 +109,7 @@ class RecruiterDataForm(forms.ModelForm):
 class JobPostForm(forms.ModelForm):
 
     required_skills = forms.CharField(
-        required=False, 
+        required=False,
         widget=forms.TextInput(attrs={'placeholder': 'e.g., Python, Django, API Design (comma-separated)'}),
         label="Required Skills",
         help_text="Enter required skills "
@@ -157,8 +149,7 @@ class JobPostForm(forms.ModelForm):
             instance.recruiter = recruiter
 
         if commit:
-            instance.save() 
-            # Clear existing skills before adding new ones
+            instance.save()
             instance.required_skills.clear()
 
             submitted_skill_names_str = self.cleaned_data.get('required_skills', '')
@@ -167,11 +158,11 @@ class JobPostForm(forms.ModelForm):
             skill_objs = set()
             for name in submitted_skill_names:
                 if name:
-                    skill_obj, created = Skill.objects.get_or_create(name=name) 
+                    skill_obj, created = Skill.objects.get_or_create(name=name)
                     skill_objs.add(skill_obj)
-            
+
             if skill_objs:
-                instance.required_skills.add(*skill_objs) 
+                instance.required_skills.add(*skill_objs)
 
         return instance
 

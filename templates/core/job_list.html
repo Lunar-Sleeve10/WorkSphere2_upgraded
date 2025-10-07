@@ -61,7 +61,7 @@
                         <div class="col-md-9">
                             <h4 class="mb-1"><a href="{% url 'job_detail' job.id %}" class="text-decoration-none">{{ job.title }}</a></h4>
                             <p class="text-secondary mb-2">
-                                Posted by: {{ job.recruiter.company_name|default:"A Recruiter" }}
+                                Posted by: {{ job.recruiter.first_name }} {{ job.recruiter.last_name }} - {{ job.recruiter.company_name|default:"A Recruiter" }}
                                 <span class="mx-2">|</span>
                                 Location: {{ job.location }}
                             </p>

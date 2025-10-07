@@ -12,30 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error("Resume pre-fill script: One or more required elements not found.");
         return;
     }
-    
-    // --- NEW HELPER FUNCTION TO POPULATE CHECKBOXES ---
-    function populateSkillsCheckboxes(skillsString) {
-        if (!skillsString) return;
 
-        // 1. Create a clean array of skill names from the resume string.
-        const skillsToSelect = skillsString.split(',').map(skill => skill.trim().toLowerCase());
-
-        // 2. Find all checkbox inputs for the 'skills' field.
-        const skillCheckboxes = document.querySelectorAll('input[name="skills"]');
-
-        // 3. Loop through all checkboxes and update their 'checked' state.
-        skillCheckboxes.forEach(checkbox => {
-            const label = document.querySelector(`label[for="${checkbox.id}"]`);
-            if (label) {
-                const labelText = label.textContent.trim().toLowerCase();
-                
-                // If the label's text is in our list of skills, check the box.
-                // Otherwise, ensure it is unchecked.
-                checkbox.checked = skillsToSelect.includes(labelText);
-            }
-        });
-    }
-    
     function getCookie(name) {
         let cookieValue = null;
         if (document.cookie && document.cookie !== '') {
@@ -130,16 +107,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 const lastNameField = form.querySelector('#id_last_name');
                 const phoneField = form.querySelector('#id_phone_number');
                 const locationField = form.querySelector('#id_location');
+                const emailField = form.querySelector('#id_email');
+                const linkedinField = form.querySelector('#id_linkedin_url');
+                const skillsField = form.querySelector('#id_skills');
 
                 if (firstNameField && firstName) firstNameField.value = firstName;
                 if (lastNameField && lastName) lastNameField.value = lastName;
                 if (phoneField && data.mobile_number) phoneField.value = data.mobile_number;
                 if (locationField && data.location) locationField.value = data.location;
-                
-                // --- THIS IS THE FIX ---
-                // Call the new helper function to correctly populate the skills checkboxes
-                populateSkillsCheckboxes(data.skills);
-                // -----------------------
+                if (emailField && data.email) emailField.value = data.email;
+                if (linkedinField && data.linkedin_url) linkedinField.value = data.linkedin_url;
+                if (skillsField && data.skills) {
+                    skillsField.value = data.skills;
+                }
 
                 console.log("Form fields updated with extracted data:", data);
 

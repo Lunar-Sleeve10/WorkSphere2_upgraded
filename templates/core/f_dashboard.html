@@ -50,7 +50,17 @@
                   </div>
                   <div class="row mb-3">
                     <div class="col-sm-3"><h6 class="mb-0">Email</h6></div>
-                    <div class="col-sm-9 text-secondary">{{ freelancer.user.email }}</div>
+                    <div class="col-sm-9 text-secondary">{{ freelancer.email|default:"N/A" }}</div>
+                  </div>
+                  <div class="row mb-3">
+                      <div class="col-sm-3"><h6 class="mb-0">LinkedIn</h6></div>
+                      <div class="col-sm-9 text-secondary">
+                          {% if freelancer.linkedin_url %}
+                              <a href="{{ freelancer.linkedin_url }}" target="_blank">{{ freelancer.linkedin_url }}</a>
+                          {% else %}
+                              N/A
+                          {% endif %}
+                      </div>
                   </div>
                   <div class="row mb-3">
                     <div class="col-sm-3"><h6 class="mb-0">Phone</h6></div>
@@ -79,23 +89,23 @@
                         {% endfor %}
                     </div>
                   </div>
-                   {% if freelancer.profile_summary %}
-                   <hr>
-                   <div class="row mb-3">
-                        <div class="col-sm-3"><h6 class="mb-0">Summary</h6></div>
-                        <div class="col-sm-9 text-secondary">{{ freelancer.profile_summary|linebreaksbr }}</div>
-                   </div>
-                   {% endif %}
-                   <hr>
-                   <div class="row">
-                        <div class="col-sm-12 profile-actions">
-                             <a href="{% url 'edit_profile' %}" class="btn btn-primary">Edit Profile</a>
-                             {% if freelancer.resume %}
-                                <a href="{{ freelancer.resume.url }}" class="btn btn-outline-primary" download>Resume</a>
-                             {% endif %}
-                             <a href="{% url 'job_list' %}" class="btn btn-info">Browse Jobs</a>
-                        </div>
-                   </div>
+                  {% if freelancer.profile_summary %}
+                  <hr>
+                  <div class="row mb-3">
+                      <div class="col-sm-3"><h6 class="mb-0">Summary</h6></div>
+                      <div class="col-sm-9 text-secondary">{{ freelancer.profile_summary|linebreaksbr }}</div>
+                  </div>
+                  {% endif %}
+                  <hr>
+                  <div class="row">
+                      <div class="col-sm-12 profile-actions">
+                           <a href="{% url 'edit_profile' %}" class="btn btn-primary">Edit Profile</a>
+                           {% if freelancer.resume %}
+                               <a href="{{ freelancer.resume.url }}" class="btn btn-outline-primary" download>Resume</a>
+                           {% endif %}
+                           <a href="{% url 'job_list' %}" class="btn btn-info">Browse Jobs</a>
+                      </div>
+                  </div>
                 </div>
               </div>
 
@@ -134,30 +144,30 @@
         </div>
     </div>
     <div class="card mt-3">
-                <div class="card-body">
-                  <h5 class="card-title mb-4">Recommended Jobs for You</h5>
-                  {% if recommended_jobs %}
-                      {% for job in recommended_jobs %}
-                          <div class="gig-card mb-3">
-                              <div class="card-body">
-                                  <h6 class="card-title mb-1">{{ job.title }}</h6>
-                                  <p class="card-subtitle mb-2 text-secondary small">
-                                      With: {{ job.recruiter.company_name|default:"Recruiter" }}
-                                  </p>
-                                  <p class="card-text small mb-1">
-                                      <strong class="text-secondary">Location:</strong> {{ job.location }}
-                                  </p>
-                                  <a href="{% url 'job_detail' job.id %}" class="card-link small">View Details</a>
-                              </div>
-                          </div>
-                      {% endfor %}
-                  {% else %}
-                      <div class="alert alert-secondary text-center" role="alert">
-                          No job recommendations available at the moment.
-                      </div>
-                  {% endif %}
-                </div>
+              <div class="card-body">
+                <h5 class="card-title mb-4">Recommended Jobs for You</h5>
+                {% if recommended_jobs %}
+                    {% for job in recommended_jobs %}
+                        <div class="gig-card mb-3">
+                            <div class="card-body">
+                                <h6 class="card-title mb-1">{{ job.title }}</h6>
+                                <p class="card-subtitle mb-2 text-secondary small">
+                                    With: {{ job.recruiter.company_name|default:"Recruiter" }}
+                                </p>
+                                <p class="card-text small mb-1">
+                                    <strong class="text-secondary">Location:</strong> {{ job.location }}
+                                </p>
+                                <a href="{% url 'job_detail' job.id %}" class="card-link small">View Details</a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="alert alert-secondary text-center" role="alert">
+                        No job recommendations available at the moment.
+                    </div>
+                {% endif %}
               </div>
+            </div>
 {% endblock %}
 
 {% block extra_js %}

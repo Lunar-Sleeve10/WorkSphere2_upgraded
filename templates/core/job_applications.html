@@ -185,8 +185,16 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 500);
 
         // Animate the text value counting up
-        let startValue = 0;
         const endValue = Math.round(score * 100);
+        
+        // --- FIX IS HERE ---
+        if (endValue === 0) {
+            if (valueText) {
+                valueText.textContent = '0%';
+            }
+            return;
+        }
+
         const duration = 1500; // ms
         const stepTime = Math.abs(Math.floor(duration / endValue));
 
@@ -196,7 +204,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (valueText) {
                 valueText.textContent = `${current}%`;
             }
-            if (current === endValue) {
+            if (current >= endValue) {
                 clearInterval(timer);
             }
         }, stepTime);

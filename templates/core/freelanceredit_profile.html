@@ -75,6 +75,17 @@
                                     </ul>
                                 {% endif %}
                             </div>
+                            {% if field.name == 'skills' %}
+                                <div class="mb-3">
+                                    <label for="add-skill-input" class="form-label fw-bold">Add a New Skill</label>
+                                    <div class="input-group">
+                                        <input type="text" id="add-skill-input" class="form-control" placeholder="e.g., GraphQL">
+                                        <button type="button" id="add-skill-button" class="btn btn-outline-secondary">Add Skill</button>
+                                    </div>
+                                    <div id="skill-add-status" class="mt-2 small"></div>
+                                    <input type="hidden" id="add-skill-url" value="{% url 'add_freelancer_skill' %}">
+                                </div>
+                            {% endif %}
                         {% endfor %}
                     </div>
                     <div class="d-grid gap-2 mt-4">

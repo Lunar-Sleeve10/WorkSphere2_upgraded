@@ -1,8 +1,105 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const skillsListContainer = document.getElementById('current-skills-list');
-    const skillDeleteStatus = document.getElementById('skill-delete-status');
-    const removeSkillUrlElement = document.getElementById('remove-skill-url');
-    const removeSkillUrl = removeSkillUrlElement ? removeSkillUrlElement.value : null;
+    // --- SKILL DELETION ---
+    const skillsList = document.getElementById('current-skills-list');
+    const deleteStatus = document.getElementById('skill-delete-status');
+    const removeSkillUrl = document.getElementById('remove-skill-url').value;
+
+    if (skillsList) {
+        skillsList.addEventListener('click', (event) => {
+            if (event.target.classList.contains('delete-skill-btn')) {
+                const skillContainer = event.target.closest('.skill-badge-container');
+                const skillId = skillContainer.dataset.skillId;
+                
+                const csrftoken = getCookie('csrftoken');
+
+                fetch(removeSkillUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRFToken': csrftoken,
+                    },
+                    body: `skill_id=${skillId}`,
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        skillContainer.remove();
+                        deleteStatus.textContent = data.message;
+                        deleteStatus.className = 'mt-2 small text-success';
+                    } else {
+                        deleteStatus.textContent = `Error: ${data.error}`;
+                        deleteStatus.className = 'mt-2 small text-danger';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error removing skill:', error);
+                    deleteStatus.textContent = 'An unexpected error occurred.';
+                    deleteStatus.className = 'mt-2 small text-danger';
+                });
+            }
+        });
+    }
+
+    // --- SKILL ADDITION ---
+    const addSkillButton = document.getElementById('add-skill-button');
+    const addSkillInput = document.getElementById('add-skill-input');
+    const addStatus = document.getElementById('skill-add-status');
+    const addSkillUrl = document.getElementById('add-skill-url').value;
+
+    if (addSkillButton) {
+        addSkillButton.addEventListener('click', () => {
+            const skillName = addSkillInput.value.trim();
+            if (!skillName) {
+                addStatus.textContent = 'Please enter a skill name.';
+                addStatus.className = 'mt-2 small text-warning';
+                return;
+            }
+
+            const csrftoken = getCookie('csrftoken');
+
+            fetch(addSkillUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': csrftoken,
+                },
+                body: `skill_name=${encodeURIComponent(skillName)}`,
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    addStatus.textContent = data.message;
+                    addStatus.className = 'mt-2 small text-success';
+                    addSkillInput.value = ''; // Clear input
+
+                    // Add the new skill to the list without reloading
+                    const newSkillBadge = document.createElement('span');
+                    newSkillBadge.className = 'skill-badge-container';
+                    newSkillBadge.dataset.skillId = data.skill.id;
+                    newSkillBadge.innerHTML = `
+                        ${data.skill.name}
+                        <button type="button" class="delete-skill-btn" aria-label="Remove skill">&times;</button>
+                    `;
+                    skillsList.appendChild(newSkillBadge);
+                    
+                    // Remove the "No skills added yet." message if it exists
+                    const noSkillsP = skillsList.querySelector('p');
+                    if(noSkillsP) {
+                        noSkillsP.remove();
+                    }
+
+                } else {
+                    addStatus.textContent = `Error: ${data.error}`;
+                    addStatus.className = 'mt-2 small text-danger';
+                }
+            })
+            .catch(error => {
+                console.error('Error adding skill:', error);
+                addStatus.textContent = 'An unexpected error occurred.';
+                addStatus.className = 'mt-2 small text-danger';
+            });
+        });
+    }
 
     function getCookie(name) {
         let cookieValue = null;
@@ -18,81 +115,4 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         return cookieValue;
     }
-    const csrftoken = getCookie('csrftoken');
-
-    if (!skillsListContainer || !removeSkillUrl) {
-        if (!removeSkillUrl) console.error("Remove skill URL element not found.");
-        if (!skillsListContainer) console.log("Skill list container not found.");
-        return;
-    }
-     if (!csrftoken) {
-        console.error("CSRF token not found. Skill deletion might fail.");
-    }
-
-
-    skillsListContainer.addEventListener('click', function(event) {
-        if (event.target && event.target.classList.contains('delete-skill-btn')) {
-            const button = event.target;
-            const skillBadge = button.closest('.skill-badge-container');
-            const skillId = skillBadge.getAttribute('data-skill-id');
-            const skillName = skillBadge.textContent.replace('×', '').trim();
-
-            if (!skillId) {
-                console.error("Could not find skill ID for deletion.");
-                return;
-            }
-
-            if (!confirm(`Are you sure you want to remove the skill "${skillName}"?`)) {
-                return;
-            }
-
-            const formData = new FormData();
-            formData.append('skill_id', skillId);
-
-            button.disabled = true;
-            if(skillDeleteStatus) {
-                skillDeleteStatus.textContent = 'Removing skill...';
-                skillDeleteStatus.className = 'mt-2 small text-info';
-            }
-
-            fetch(removeSkillUrl, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': csrftoken,
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    skillBadge.remove();
-                    if(skillDeleteStatus) {
-                        skillDeleteStatus.textContent = data.message || 'Skill removed successfully.';
-                        skillDeleteStatus.className = 'mt-2 small text-success';
-                    }
-                    if (!skillsListContainer.querySelector('.skill-badge-container')) {
-                        const noSkillsP = document.createElement('p');
-                        noSkillsP.className = 'text-muted fst-italic';
-                        noSkillsP.textContent = 'No skills added yet.';
-                        skillsListContainer.appendChild(noSkillsP);
-                    }
-                } else {
-                    if(skillDeleteStatus) {
-                        skillDeleteStatus.textContent = `Error: ${data.error || 'Could not remove skill.'}`;
-                        skillDeleteStatus.className = 'mt-2 small text-danger';
-                    }
-                    button.disabled = false;
-                }
-            })
-            .catch(error => {
-                console.error('Error removing skill:', error);
-                 if(skillDeleteStatus) {
-                    skillDeleteStatus.textContent = 'Error: Could not connect to server.';
-                    skillDeleteStatus.className = 'mt-2 small text-danger';
-                 }
-                button.disabled = false;
-            });
-        }
-    });
 });

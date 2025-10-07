@@ -122,7 +122,7 @@ def delete_account_view(request):
     return redirect('home')
 
 # ==============================================================================
-# FREELANCER VIEWS
+# FREANCER VIEWS
 # ==============================================================================
 
 @login_required
@@ -166,7 +166,22 @@ def create_freelancer_profile(request):
             messages.success(request, f"Profile {'updated' if is_editing else 'created'} successfully!")
             return redirect('freelancer_dashboard')
     else:
-        form = FreelancerDataForm(instance=freelancer_instance)
+        if is_editing:
+            # Pass existing data as initial data, but leave skills blank
+            initial_data = {
+                'first_name': freelancer_instance.first_name,
+                'last_name': freelancer_instance.last_name,
+                'email': freelancer_instance.email,
+                'linkedin_url': freelancer_instance.linkedin_url,
+                'phone_number': freelancer_instance.phone_number,
+                'profile_summary': freelancer_instance.profile_summary,
+                'location': freelancer_instance.location,
+                'experience_years': freelancer_instance.experience_years,
+                'expected_hourly_rate': freelancer_instance.expected_hourly_rate,
+            }
+            form = FreelancerDataForm(initial=initial_data)
+        else:
+            form = FreelancerDataForm()
 
     context = {
         'form': form,
@@ -190,6 +205,25 @@ def remove_freelancer_skill(request):
         return JsonResponse({'success': False, 'error': 'Invalid Skill ID.'}, status=400)
     except Exception:
         return JsonResponse({'success': False, 'error': 'An unexpected error occurred.'}, status=500)
+
+@login_required
+@require_POST
+def add_freelancer_skill(request):
+    try:
+        freelancer_profile = FreelancerData.objects.get(user=request.user)
+        skill_name = request.POST.get('skill_name', '').strip()
+
+        if not skill_name:
+            return JsonResponse({'success': False, 'error': 'Skill name cannot be empty.'}, status=400)
+
+        skill, created = Skill.objects.get_or_create(name=skill_name.lower())
+        freelancer_profile.skills.add(skill)
+
+        return JsonResponse({'success': True, 'message': 'Skill added.', 'skill': {'id': skill.id, 'name': skill.name}})
+    except FreelancerData.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Freelancer profile not found.'}, status=404)
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': f'An unexpected error occurred: {e}'}, status=500)
 
 
 # ==============================================================================
@@ -436,7 +470,11 @@ def parse_resume_view(request):
         custom_doc = custom_nlp(extracted_text)
         found_skills = sorted(list({ent.text for ent in custom_doc.ents if ent.label_ == "SKILL"}))
         if found_skills:
-            formatted_data['skills'] = ", ".join(found_skills)
+            # Clean the skills string: remove titles and extra text
+            skills_text = ", ".join(found_skills)
+            skills_text = re.sub(r'.*:\s*', '', skills_text) # Remove titles like "Programming Languages:"
+            skills_text = re.sub(r'\s*', '', skills_text) # Remove bullet points
+            formatted_data['skills'] = skills_text
     
     if not formatted_data:
         return JsonResponse({'error': 'Could not extract relevant information.'}, status=400)
@@ -450,30 +488,40 @@ def get_freelancer_ats_view(request, job_id):
         job = get_object_or_404(Job, pk=job_id)
         freelancer = get_object_or_404(FreelancerData, user=request.user)
 
-        if not freelancer.resume or not freelancer.resume.path:
-            return JsonResponse({'error': 'You must have a resume uploaded to check the score.'}, status=400)
+        # --- MODIFICATION START ---
+        # 1. Combine Profile Data
+        profile_skills = ' '.join([skill.name for skill in freelancer.skills.all()])
+        profile_text = f"{freelancer.profile_summary} {profile_skills}"
+
+        # 2. Extract Resume Text (if resume exists)
+        resume_text = ""
+        if freelancer.resume and freelancer.resume.path:
+            try:
+                resume_path = freelancer.resume.path
+                file_extension = os.path.splitext(resume_path)[1].lower()
+
+                if file_extension == '.pdf' and extract_pdf_text:
+                    resume_text = extract_pdf_text(resume_path)
+                elif file_extension == '.docx' and docx:
+                    resume_text = '\n'.join([p.text for p in docx.Document(resume_path).paragraphs])
+                elif file_extension in ['.jpg', '.jpeg', '.png'] and Image and pytesseract:
+                    resume_text = pytesseract.image_to_string(Image.open(resume_path))
+            except FileNotFoundError:
+                # It's okay if the resume file is missing; we can still score based on the profile
+                pass
+        
+        # 3. Combine all text for scoring
+        combined_text = f"{profile_text} {resume_text}"
+
+        if not combined_text.strip():
+            return JsonResponse({'error': 'Your profile and resume are empty. Cannot calculate score.'}, status=400)
 
         job_text = f"{job.title} {job.description} {' '.join([skill.name for skill in job.required_skills.all()])}"
         
-        resume_path = freelancer.resume.path
-        file_extension = os.path.splitext(resume_path)[1].lower()
-        resume_text = ""
-
-        if file_extension == '.pdf' and extract_pdf_text:
-            resume_text = extract_pdf_text(resume_path)
-        elif file_extension == '.docx' and docx:
-            resume_text = '\n'.join([p.text for p in docx.Document(resume_path).paragraphs])
-        elif file_extension in ['.jpg', '.jpeg', '.png'] and Image and pytesseract:
-            resume_text = pytesseract.image_to_string(Image.open(resume_path))
-        
-        if not resume_text.strip():
-            return JsonResponse({'error': 'Could not extract text from your resume.'}, status=400)
-
-        score = get_resume_ats_score(job_text, resume_text)
+        score = get_resume_ats_score(job_text, combined_text)
         return JsonResponse({'success': True, 'score': score})
+        # --- MODIFICATION END ---
 
-    except FileNotFoundError:
-        return JsonResponse({'error': 'Your resume file could not be found. Please re-upload it.'}, status=404)
     except Exception as e:
         print(f"Error in ATS score calculation: {e}")
         return JsonResponse({'error': 'An unexpected server error occurred.'}, status=500)
