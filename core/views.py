@@ -5,6 +5,7 @@ import re
 import tempfile
 import traceback
 import spacy
+import pdfminer
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, authenticate, logout
@@ -29,7 +30,7 @@ except ImportError:
     def rank_applications(job): return Application.objects.filter(job=job)
     def get_resume_ats_score(job_text, resume_text): return 0
 
-# --- Resume Parsing Imports ---
+
 try:
     from pdfminer.high_level import extract_text as extract_pdf_text
 except ImportError:
@@ -290,15 +291,43 @@ def job_list(request):
     }
     return render(request, 'core/job_list.html', context)
 
+@login_required
 def job_detail(request, job_id):
-    job = get_object_or_404(Job.objects.select_related('recruiter'), pk=job_id, is_active=True)
-    has_applied = False
-    is_freelancer = False
-    if request.user.is_authenticated and hasattr(request.user, 'freelancer_profile'):
-        is_freelancer = True
-        has_applied = Application.objects.filter(job=job, freelancer=request.user.freelancer_profile).exists()
+    job = get_object_or_404(Job, id=job_id)
+    freelancer_profile = None
 
-    context = {'job': job, 'has_applied': has_applied, 'is_freelancer': is_freelancer}
+    # First, check if the logged-in user is a freelancer at all
+    if not request.user.is_freelancer:
+        messages.error(request, "Only users with a freelancer account can view and apply for jobs.")
+        return redirect('browse_jobs')
+
+    # If they are a freelancer, try to get their completed profile
+    try:
+        freelancer_profile = FreelancerData.objects.get(user=request.user)
+    except FreelancerData.DoesNotExist:
+        # Give a MORE HELPFUL error message
+        messages.warning(request, "You must create your freelancer profile before you can apply for a job.")
+        # Redirect them to the page where they can fix the problem
+        return redirect('freelanceredit-profile') 
+
+    # Check if this freelancer has already applied
+    has_applied = Application.objects.filter(job=job, freelancer=freelancer_profile).exists()
+
+    # Handle the application form submission (this is a basic example)
+    if request.method == 'POST':
+        if not has_applied:
+            # Assuming a simple application with no form for now
+            Application.objects.create(job=job, freelancer=freelancer_profile)
+            messages.success(request, "You have successfully applied for this job!")
+            return redirect('job_detail', job_id=job.id)
+        else:
+            messages.error(request, "You have already applied for this job.")
+
+    context = {
+        'job': job,
+        'has_applied': has_applied
+    }
+    
     return render(request, 'core/job_detail.html', context)
 
 @login_required

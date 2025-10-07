@@ -32,60 +32,34 @@ class LoginForm(AuthenticationForm):
 
 
 class FreelancerDataForm(forms.ModelForm):
-    skills = forms.CharField(
+    # This is the CORRECT field type. It will use IDs, not names.
+    skills = forms.ModelMultipleChoiceField(
+        queryset=Skill.objects.all(),
+        widget=forms.CheckboxSelectMultiple, # This widget shows checkboxes
         required=False,
-        widget=forms.TextInput(attrs={'placeholder': 'e.g., Python, Django, React (comma-separated)'}),
-        help_text="Enter skills separated by commas. Add new skills here."
+        label="Your Skills"
     )
 
     class Meta:
         model = FreelancerData
         fields = [
-            'first_name',
-            'last_name',
-            'phone_number',
-            'profile_summary',
-            'location',
-            'experience_years',
-            'expected_hourly_rate',
-            'resume',
-            'profile_picture',
-            'skills',
+            'first_name', 'last_name', 'phone_number', 'profile_summary',
+            'location', 'experience_years', 'expected_hourly_rate',
+            'resume', 'profile_picture', 'skills'
         ]
         widgets = {
             'profile_summary': forms.Textarea(attrs={'rows': 4}),
         }
 
-    def __init__(self, *args, **kwargs):
-        instance = kwargs.get('instance', None)
-        super().__init__(*args, **kwargs)
-        self.initial.pop('skills', None)
-        self.fields['skills'].initial = ''
-
+    # You no longer need the custom save() method because
+    # form.save() and form.save_m2m() will now work correctly by default.
     def save(self, commit=True, user=None):
         instance = super().save(commit=False)
         if user:
             instance.user = user
-
         if commit:
             instance.save()
-
-            submitted_skill_names_str = self.cleaned_data.get('skills', '')
-            submitted_skill_names = {name.strip().lower() for name in submitted_skill_names_str.split(',') if name.strip()}
-
-            submitted_skill_objs = set()
-            for name in submitted_skill_names:
-                if name:
-                    skill_obj, created = Skill.objects.get_or_create(name=name)
-                    submitted_skill_objs.add(skill_obj)
-
-            if instance.pk:
-                if submitted_skill_objs:
-                    instance.skills.add(*submitted_skill_objs)
-
         return instance
-
-
 
 class RecruiterDataForm(forms.ModelForm):
     

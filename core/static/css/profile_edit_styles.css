@@ -75,6 +75,34 @@ body {
      color: #1a202c;
 }
 
+/* --- NEW STYLES FOR SKILLS CHECKBOXES --- */
+#id_skills {
+    list-style-type: none;
+    padding: 0.75rem;
+    margin: 0.5rem 0;
+    max-height: 200px;
+    overflow-y: auto;
+    background-color: #4a5568;
+    border: 1px solid #4a5568;
+    border-radius: .25rem;
+}
+#id_skills li {
+    margin-bottom: 0.5rem;
+}
+#id_skills label {
+    margin-left: 0.5rem;
+    font-weight: normal;
+    cursor: pointer;
+    color: #e2e8f0;
+}
+#id_skills input[type="checkbox"] {
+    cursor: pointer;
+    width: 1em;
+    height: 1em;
+    vertical-align: middle;
+}
+/* ----------------------------------------- */
+
 .form-field-spacing .helptext {
     font-size: 0.875em;
     color: #a0aec0; /* Lighter help text */
