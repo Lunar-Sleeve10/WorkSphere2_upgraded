@@ -1,0 +1,94 @@
+/* static/css/job_detail_styles.css */
+
+/* Inherits body styles from main_styles.css */
+
+.job-detail-header {
+    /* Slightly lighter background for header section */
+    background-color: #2d3748;
+    padding: 2rem 1rem;
+    margin-bottom: 2rem;
+    border-radius: 0.375rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.job-detail-header h1 {
+    color: #fff; /* White title */
+}
+.job-detail-header .lead {
+    color: #a0aec0; /* Lighter secondary text */
+}
+.job-detail-header .text-muted {
+     color: #718096 !important; /* Even lighter muted text */
+}
+
+
+.card { /* Ensure card styles are applied if not inherited */
+    box-shadow: 0 1px 3px 0 rgba(0,0,0,.1), 0 1px 2px 0 rgba(0,0,0,.06);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    word-wrap: break-word;
+    background-color: #2d3748;
+    background-clip: border-box;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: .35rem;
+    color: #e2e8f0;
+}
+.card-body {
+    padding: 1.5rem;
+}
+
+.detail-section {
+    margin-bottom: 1.5rem;
+}
+.detail-label {
+    font-weight: 600;
+    color: #cbd5e0; /* Lighter label color */
+    margin-bottom: 0.75rem !important; /* Add space below label */
+}
+.skill-badge {
+    font-size: 0.9em;
+    padding: 0.4em 0.7em;
+    background-color: #3182ce !important; /* Use primary blue for skills */
+    color: #fff !important;
+    border: none;
+}
+
+/* Application Form Styling */
+.application-form textarea {
+    min-height: 100px;
+    background-color: #4a5568;
+    color: #e2e8f0;
+    border: 1px solid #4a5568;
+    border-radius: .25rem;
+    padding: .375rem .75rem;
+    width: 100%;
+}
+.application-form textarea:focus {
+    background-color: #4a5568;
+    color: #e2e8f0;
+    border-color: #63b3ed;
+    box-shadow: 0 0 0 0.2rem rgba(99, 179, 237, 0.25);
+}
+.application-form label {
+    color: #cbd5e0;
+    font-weight: 500;
+}
+.application-form .text-muted {
+     color: #a0aec0 !important;
+}
+
+hr {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Button adjustments */
+.btn-primary { background-color: #3182ce; border-color: #3182ce; color: #fff; }
+.btn-primary:hover { background-color: #2b6cb0; border-color: #2b6cb0; }
+.btn-success { background-color: #38a169; border-color: #38a169; color: #fff; } /* Darker green */
+.btn-success:disabled { background-color: #48bb78; border-color: #48bb78; opacity: 0.65; }
+.btn-outline-secondary { color: #a0aec0; border-color: #4a5568; }
+.btn-outline-secondary:hover { color: #fff; background-color: #4a5568; border-color: #4a5568; }
+.alert-link { color: #90cdf4; }
+.alert-link:hover { color: #fff; }
+

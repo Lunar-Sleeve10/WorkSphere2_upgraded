@@ -1,0 +1,137 @@
+/* core/static/core/css/navbar_styles.css */
+
+/* Import Google Font */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
+
+* {
+    /* Apply basic resets if not done elsewhere */
+    /* margin: 0; */
+    /* padding: 0; */
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+/* Basic body styling moved to main_styles.css or kept in individual page CSS */
+
+.header {
+    position: fixed; /* Keeps navbar at the top */
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 20px 5%; /* Use percentage for padding */
+    /* Semi-transparent dark background */
+    background: rgba(44, 62, 80, 0.3); /* Adjust alpha for transparency */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    backdrop-filter: blur(10px); /* Glass effect */
+    border-bottom: 1px solid rgba(255, 255, 255, .1); /* Subtle border */
+    z-index: 1030; /* Ensure navbar is above other content (Bootstrap's standard) */
+}
+
+/* Optional hover effect from example */
+/*
+.header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .1), transparent);
+    transition: .5s;
+}
+.header:hover::before {
+    left: 100%;
+}
+*/
+
+.logo {
+    color: #fff;
+    font-size: 25px;
+    text-decoration: none;
+    font-weight: 600;
+    cursor: default; /* Or pointer if it's always a link */
+}
+
+.navbar a {
+    color: #e2e8f0; /* Light text color */
+    font-size: 17px; /* Slightly smaller font */
+    text-decoration: none;
+    margin-left: 30px; /* Adjust spacing */
+    transition: color .3s;
+    font-weight: 500;
+}
+
+.navbar a:hover,
+.navbar a.active { /* Style for active link */
+    color: #63b3ed; /* Light blue for hover/active */
+}
+
+/* Style the logout button to look like a link */
+.navbar .btn-logout {
+    background: none;
+    border: none;
+    color: #e2e8f0;
+    font-size: 17px;
+    font-family: 'Poppins', sans-serif;
+    margin-left: 30px;
+    padding: 0;
+    cursor: pointer;
+    transition: color .3s;
+    font-weight: 500;
+    vertical-align: baseline; /* Align with text links */
+}
+
+.navbar .btn-logout:hover {
+    color: #f56565; /* Reddish color on hover */
+}
+
+/* Add space below fixed header so content isn't hidden */
+.main-content {
+    padding-top: 100px; /* Adjust based on navbar height */
+    /* Ensure background covers this area too if needed */
+    min-height: calc(100vh - 100px); /* Basic sticky footer setup */
+}
+
+/* Optional Footer Styling */
+.footer {
+    background-color: rgba(44, 62, 80, 0.5); /* Match navbar style */
+    color: #a0aec0;
+    border-top: 1px solid rgba(255, 255, 255, .1);
+}
+
+/* Responsive adjustments */
+@media (max-width: 992px) {
+    .header {
+        padding: 20px 5%;
+    }
+    .navbar a, .navbar .btn-logout {
+        margin-left: 20px;
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 768px) {
+    .header {
+        padding: 15px 3%;
+        flex-direction: column; /* Stack logo and nav on small screens */
+        align-items: flex-start;
+    }
+    .navbar {
+        width: 100%;
+        margin-top: 10px;
+        /* Consider implementing a mobile toggle menu here */
+        display: flex;
+        justify-content: space-around; /* Example alignment */
+    }
+     .navbar a, .navbar .btn-logout {
+        margin-left: 0; /* Remove left margin */
+        margin: 0 5px; /* Add horizontal margin */
+        font-size: 15px;
+    }
+    .main-content {
+        padding-top: 150px; /* Increase padding for taller mobile navbar */
+    }
+}
+

@@ -1,0 +1,135 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up</title>
+    {# Link to the SAME non-Bootstrap CSS used by the login page #}
+    <link rel="stylesheet" href="{% static 'css/style2.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    {# Inline style for background image using static tag #}
+    <style>
+        body::before {
+            /* Assumes login.jpg is in static/images/ */
+            background: url("https://images.unsplash.com/photo-1488866022504-f2584929ca5f?fit=fillmax&fm=jpg&ixid=MnwzNTY3MHwwfDF8YWxsfHx8fHx8fHx8MTY3OTgzOTkwMA&ixlib=rb-4.0.3&q=75") center center / cover no-repeat, #000;
+        }
+    </style>
+</head>
+<body>
+    <a href="{% url 'home' %}" class="back-to-home">
+        <i class="fas fa-arrow-left"></i> Home
+    </a>
+    <div class="wrapper signup-wrapper"> 
+     
+        <div class="form-container">
+
+         
+            <div class="form-content">
+                <form id="signup-form" method="post">
+                    {% csrf_token %}
+                    <h2>Sign Up</h2>
+
+                     {% if form.non_field_errors %}
+                        <div class="error-message non-field-error">{{ form.non_field_errors }}</div>
+                    {% endif %}
+
+                    {# Username Field #}
+                    <div class="input-field">
+                        <input type="text" name="username" id="id_username" value="{{ form.username.value|default_if_none:'' }}" required>
+                        <label for="id_username">Username</label>
+                    </div>
+                    {% if form.username.errors %}
+                        <div class="error-message">{{ form.username.errors }}</div>
+                    {% endif %}
+
+                    {# First Name Field #}
+                    <div class="input-field">
+                        <input type="text" name="first_name" id="id_first_name" value="{{ form.first_name.value|default_if_none:'' }}" required>
+                        <label for="id_first_name">First Name</label>
+                    </div>
+                    {% if form.first_name.errors %}
+                        <div class="error-message">{{ form.first_name.errors }}</div>
+                    {% endif %}
+
+                    {# Last Name Field #}
+                    <div class="input-field">
+                        <input type="text" name="last_name" id="id_last_name" value="{{ form.last_name.value|default_if_none:'' }}" required>
+                        <label for="id_last_name">Last Name</label>
+                    </div>
+                    {% if form.last_name.errors %}
+                        <div class="error-message">{{ form.last_name.errors }}</div>
+                    {% endif %}
+
+                    {# Password 1 Field #}
+                    <div class="input-field">
+                        <input type="password" name="password1" id="id_password1" required> {# Changed name to password #}
+                        <label for="id_password1">Password</label>
+                    </div>
+                     {% if form.password.errors %} {# Changed reference to password #}
+                        <div class="error-message">{{ form.password.errors }}</div>
+                    {% endif %}
+
+                    {# Password 2 Field #}
+                    <div class="input-field">
+                        <input type="password" name="password2" id="id_password2" required>
+                        <label for="id_password2">Confirm Password</label>
+                    </div>
+                    {% if form.password2.errors %}
+                        <div class="error-message">{{ form.password2.errors }}</div>
+                    {% endif %}
+
+                    {# User Type Select Field - Special Handling #}
+                    <div class="input-field select-field"> {# Added class for specific styling #}
+                         <label for="id_type" class="static-label">User Type</label> {# Static label above #}
+                         <select name="type" id="id_type" required>
+                            {# Add placeholder styling via CSS if needed #}
+                            <option value="" disabled {% if not form.type.value %}selected{% endif %}>Select user type...</option>
+                            <option value="freelancer" {% if form.type.value == 'freelancer' %}selected{% endif %}>Freelancer</option>
+                            <option value="recruiter" {% if form.type.value == 'recruiter' %}selected{% endif %}>Recruiter</option>
+                        </select>
+                    </div>
+                     {% if form.type.errors %}
+                        <div class="error-message">{{ form.type.errors }}</div>
+                    {% endif %}
+
+                    {# Terms & Conditions Checkbox - Special Handling #}
+                    <div class="terms-field">
+                        <input type="checkbox" name="terms" id="id_terms" required>
+                        <label for="id_terms">I accept all terms & conditions</label>
+                    </div>
+                     {% if form.terms.errors %} {# Assumes 'terms' is the field name in your Django form #}
+                        <div class="error-message">{{ form.terms.errors }}</div>
+                    {% endif %}
+
+                    {# Submit Button #}
+                    <button type="submit">Register Now</button>
+
+                    {# Link to Login #}
+                    <div class="register"> {# Re-using class name, but context is different #}
+                        <p>Already have an account? <a href="{% url 'login' %}">Login now</a></p>
+                    </div>
+                </form>
+            </div> {# End form-content #}
+
+            {# Image Area on the Right side (uses the same image as login) #}
+            <div class="form-image">
+               
+                <img src="https://cdn.pixabay.com/animation/2022/10/25/12/11/12-11-02-585_512.gif" alt="Illustration">
+            </div>
+
+        </div> {# End form-container #}
+    </div> {# End wrapper #}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+          const wrapper = document.querySelector('.wrapper');
+          if (wrapper) {
+            // Apply visible class slightly after load to trigger transition
+            setTimeout(() => {
+              wrapper.classList.add('visible');
+            }, 80); 
+          }
+        });
+    </script>
+</body>
+</html>

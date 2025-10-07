@@ -1,0 +1,73 @@
+/* static/css/recruiter_edit_styles.css */
+
+.form-field-spacing p {
+    margin-bottom: 1rem;
+}
+.form-field-spacing label {
+    margin-bottom: 0.25rem;
+    display: block;
+    color: #cbd5e0;
+    font-weight: 500;
+}
+.form-field-spacing input[type="text"],
+.form-field-spacing input[type="number"],
+.form-field-spacing input[type="email"],
+.form-field-spacing input[type="file"],
+.form-field-spacing textarea,
+.form-field-spacing select {
+    margin-bottom: 0.5rem;
+    background-color: #4a5568;
+    color: #e2e8f0;
+    border: 1px solid #4a5568;
+    border-radius: .25rem;
+    padding: .375rem .75rem;
+    width: 100%;
+    display: block;
+}
+.form-field-spacing input[type="text"]:focus,
+.form-field-spacing input[type="number"]:focus,
+.form-field-spacing input[type="email"]:focus,
+.form-field-spacing input[type="file"]:focus,
+.form-field-spacing textarea:focus,
+.form-field-spacing select:focus {
+    background-color: #4a5568;
+    color: #e2e8f0;
+    border-color: #63b3ed;
+    box-shadow: 0 0 0 0.2rem rgba(99, 179, 237, 0.25);
+}
+.form-field-spacing input[type="file"]::file-selector-button {
+    background-color: #4a5568;
+    color: #e2e8f0;
+    border: 1px solid #63b3ed;
+    padding: .375rem .75rem;
+    border-radius: .25rem;
+    margin-right: 1rem;
+    cursor: pointer;
+    transition: background-color .15s ease-in-out, color .15s ease-in-out;
+}
+.form-field-spacing input[type="file"]::file-selector-button:hover {
+     background-color: #63b3ed;
+     color: #1a202c;
+}
+
+.form-field-spacing .helptext {
+    font-size: 0.875em;
+    color: #a0aec0;
+    display: block;
+    margin-top: 0.25rem;
+    margin-bottom: 0.5rem;
+}
+.form-field-spacing ul.errorlist {
+    list-style: none;
+    padding-left: 0;
+    color: #f56565;
+    font-size: 0.875em;
+    margin-top: 0.25rem;
+    margin-bottom: 0.5rem;
+}
+
+.form-check.form-check-inline label.form-check-label {
+    color: #cbd5e0;
+    font-weight: normal;
+    margin-left: 0.25rem;
+}

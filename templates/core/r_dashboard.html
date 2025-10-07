@@ -1,0 +1,102 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Recruiter Dashboard{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/r_dashboard_styles.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="main-body">
+
+          {% if messages %}
+              {% for message in messages %}
+                  <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags == 'warning' %}warning{% elif message.tags == 'success' %}success{% else %}info{% endif %} alert-dismissible fade show mb-3" role="alert">
+                      {{ message }}
+                      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+                  </div>
+              {% endfor %}
+          {% endif %}
+
+          {% if recruiter %}
+          <div class="row gutters-sm">
+            <div class="col-md-4 mb-3">
+              <div class="card">
+                <div class="card-body">
+                  <div class="d-flex flex-column align-items-center text-center">
+                    {% if recruiter.profile_picture %}
+                        <img src="{{ recruiter.profile_picture.url }}" alt="{{ recruiter.first_name }}'s Profile" class="rounded-circle profile-picture-lg">
+                    {% else %}
+                        <img src="https://via.placeholder.com/150/2d3748/e2e8f0?text=No+Photo" alt="Default Profile" class="rounded-circle profile-picture-lg">
+                    {% endif %}
+                    <div class="mt-3">
+                      <h4>{{ recruiter.first_name }} {{ recruiter.last_name }}</h4>
+                      <p class="text-secondary mb-1">{{ recruiter.company_name|default:"Company Name" }}</p>
+                      <p class="text-secondary font-size-sm mb-3">{{ recruiter.location|default:"Location not set" }}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-md-8">
+              <div class="card mb-3">
+                <div class="card-body">
+                  <h5 class="card-title mb-4">Profile Details</h5>
+                  <div class="row mb-3">
+                    <div class="col-sm-3"><h6 class="mb-0">Full Name</h6></div>
+                    <div class="col-sm-9 text-secondary">{{ recruiter.first_name }} {{ recruiter.last_name }}</div>
+                  </div>
+                   <div class="row mb-3">
+                    <div class="col-sm-3"><h6 class="mb-0">Company</h6></div>
+                    <div class="col-sm-9 text-secondary">{{ recruiter.company_name|default:"N/A" }}</div>
+                  </div>
+                  <div class="row mb-3">
+                    <div class="col-sm-3"><h6 class="mb-0">Email</h6></div>
+                    <div class="col-sm-9 text-secondary">{{ recruiter.user.email }}</div>
+                  </div>
+                  <div class="row mb-3">
+                    <div class="col-sm-3"><h6 class="mb-0">Phone</h6></div>
+                    <div class="col-sm-9 text-secondary">{{ recruiter.phone_number|default:"N/A" }}</div>
+                  </div>
+                  <div class="row mb-3">
+                    <div class="col-sm-3"><h6 class="mb-0">Location</h6></div>
+                    <div class="col-sm-9 text-secondary">{{ recruiter.location|default:"N/A" }}</div>
+                  </div>
+                   <div class="row mb-3">
+                    <div class="col-sm-3"><h6 class="mb-0">Experience</h6></div>
+                    <div class="col-sm-9 text-secondary">{{ recruiter.experience_years|default:"N/A" }} years</div>
+                  </div>
+                   {% if recruiter.profile_summary %}
+                   <hr>
+                   <div class="row mb-3">
+                        <div class="col-sm-3"><h6 class="mb-0">Summary</h6></div>
+                        <div class="col-sm-9 text-secondary">{{ recruiter.profile_summary|linebreaksbr }}</div>
+                   </div>
+                   {% endif %}
+                   <hr>
+                   <div class="row">
+                        <div class="col-sm-12 profile-actions">
+                            <a href="{% url 'recruiter_profile_edit' %}" class="btn btn-warning">Edit Profile</a>
+                            <a href="{% url 'create_job' %}" class="btn btn-primary">Post New Job</a>
+                            <a href="{% url 'recruiter_job_list' %}" class="btn btn-secondary">My Job Postings</a>
+                        </div>
+                   </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          {% else %}
+              <div class="alert alert-warning" role="alert">
+                Recruiter profile not found. Please <a href="{% url 'recruiter_profile_edit' %}" class="alert-link">create your profile</a>.
+              </div>
+          {% endif %}
+
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+{% endblock %}

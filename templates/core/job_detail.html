@@ -1,0 +1,216 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}{{ job.title }} - Job Details{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/job_detail_styles.css' %}">
+    {# --- NEW CSS FOR THE ATS GAUGE --- #}
+    <style>
+        .ats-gauge {
+            width: 120px;
+            height: 60px;
+            position: relative;
+            overflow: hidden;
+            margin: 10px auto 0;
+        }
+        .ats-gauge::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 10px solid #4a5568;
+            border-bottom-color: #4fd1c5; /* Teal color for freelancer score */
+            border-right-color: #4fd1c5;
+            transform: rotate(-135deg);
+            box-sizing: border-box;
+        }
+        .gauge-needle {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 2px;
+            height: 55px;
+            background: #e2e8f0;
+            transform-origin: bottom center;
+            transform: rotate(-90deg); /* Start at 0% */
+            transition: transform 1.5s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        .gauge-center {
+             position: absolute;
+             bottom: 0px;
+             left: 50%;
+             width: 10px;
+             height: 10px;
+             background: #cbd5e0;
+             border-radius: 50%;
+             transform: translateX(-50%);
+        }
+        .gauge-value {
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #fff;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    {# ... (existing job header and details) ... #}
+    
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card p-4 p-md-5 shadow-sm">
+                {# ... (existing job description, skills, etc.) ... #}
+                <hr>
+
+                <div class="detail-section application-form text-center mt-4">
+                    {% if user.is_authenticated and is_freelancer %}
+                        
+                        {# --- NEW ATS SCORE SECTION --- #}
+                        <div class="card p-3 mb-4" style="background-color: #4a5568;">
+                            <h5 class="detail-label mb-2">Check Your Resume's ATS Score</h5>
+                            <p class="text-secondary small mb-3">See how well your uploaded resume matches this job.</p>
+                            <button id="check-ats-score-btn" class="btn btn-info btn-sm" data-url="{% url 'get_freelancer_ats' job.id %}">
+                                <span id="ats-btn-text">Check My Score</span>
+                                <span id="ats-spinner" class="spinner-border spinner-border-sm ms-1 d-none" role="status" aria-hidden="true"></span>
+                            </button>
+                            <div id="ats-score-display" class="mt-3" style="display: none;">
+                                <h6 class="text-secondary mb-0">Your Match Score</h6>
+                                <div class="ats-gauge" data-score="0">
+                                    <div class="gauge-needle"></div>
+                                    <div class="gauge-center"></div>
+                                    <div class="gauge-value">0%</div>
+                                </div>
+                            </div>
+                            <div id="ats-error" class="text-danger small mt-2"></div>
+                        </div>
+
+                        {% if has_applied %}
+                            <button class="btn btn-success btn-lg" disabled>Already Applied</button>
+                        {% else %}
+                            <h4 class="detail-label mb-3">Apply Now</h4>
+                            <form action="{% url 'apply_to_job' job.id %}" method="post">
+                                {% csrf_token %}
+                                <div class="mb-3">
+                                    <label for="cover_letter" class="form-label">Cover Letter (Optional)</label>
+                                    <textarea class="form-control" id="cover_letter" name="cover_letter" rows="4" placeholder="Briefly explain why you're a good fit for this role..."></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-lg">Submit Application</button>
+                            </form>
+                        {% endif %}
+                    {% elif user.is_authenticated and not is_freelancer %}
+                        <p class="text-secondary"><em>Only freelancers can apply for jobs.</em></p>
+                    {% else %}
+                        <p class="text-secondary"><em>Please <a href="{% url 'login' %}?next={{ request.path }}">log in</a> as a freelancer to apply.</em></p>
+                    {% endif %}
+                </div>
+
+            </div>
+            {# ... (existing back to job listings link) ... #}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const atsButton = document.getElementById('check-ats-score-btn');
+    const atsDisplay = document.getElementById('ats-score-display');
+    const atsError = document.getElementById('ats-error');
+    const atsBtnText = document.getElementById('ats-btn-text');
+    const atsSpinner = document.getElementById('ats-spinner');
+    
+    // Function to get CSRF token from cookies
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    if (atsButton) {
+        atsButton.addEventListener('click', function() {
+            const url = this.dataset.url;
+            
+            // Show loading state
+            atsBtnText.textContent = 'Analyzing...';
+            atsSpinner.classList.remove('d-none');
+            atsButton.disabled = true;
+            atsError.textContent = '';
+            
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(errData => {
+                        throw new Error(errData.error || `Server error: ${response.status}`);
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    atsDisplay.style.display = 'block';
+                    const gauge = atsDisplay.querySelector('.ats-gauge');
+                    animateGauge(gauge, data.score);
+                    atsButton.style.display = 'none'; // Hide button after successful check
+                }
+            })
+            .catch(error => {
+                atsError.textContent = error.message;
+                resetButton();
+            });
+        });
+    }
+
+    function resetButton() {
+        atsBtnText.textContent = 'Check My Score';
+        atsSpinner.classList.add('d-none');
+        atsButton.disabled = false;
+    }
+
+    function animateGauge(gauge, score) {
+        const needle = gauge.querySelector('.gauge-needle');
+        const valueText = gauge.querySelector('.gauge-value');
+        const rotation = (score * 180) - 90;
+        
+        setTimeout(() => { needle.style.transform = `rotate(${rotation}deg)`; }, 100);
+
+        let current = 0;
+        const endValue = Math.round(score * 100);
+        const duration = 1500;
+        const stepTime = Math.max(10, duration / (endValue || 1));
+
+        const timer = setInterval(() => {
+            current++;
+            valueText.textContent = `${current}%`;
+            if (current >= endValue) {
+                clearInterval(timer);
+            }
+        }, stepTime);
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,143 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Browse Jobs{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/job_list_styles.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+
+    <h1 class="mb-4 text-center text-white">Browse Available Jobs</h1>
+
+    <div class="card p-4 mb-5 shadow-sm filter-form">
+        <h5 class="mb-3 card-title">Filter Jobs</h5>
+        <form method="get" action="{% url 'job_list' %}">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label for="q" class="form-label">Keyword Search</label>
+                    <input type="text" name="q" id="q" class="form-control" placeholder="Job title, description..." value="{{ current_query }}">
+                </div>
+                <div class="col-md-4">
+                    <label for="location" class="form-label">Location</label>
+                    <input type="text" name="location" id="location" class="form-control" placeholder="City, State or Remote" value="{{ current_location }}">
+                </div>
+                <div class="col-md-4">
+                    <label for="skills" class="form-label">Skills</label>
+                    <select name="skills" id="skills" class="form-select" multiple size="3">
+                        <option value="" disabled>Select skills...</option>
+                        {% for skill in all_skills %}
+                            <option value="{{ skill.id }}" {% if skill.id|stringformat:"s" in current_skills %}selected{% endif %}>
+                                {{ skill.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                    <small class="form-text text-secondary">Hold Ctrl/Cmd to select multiple.</small>
+                </div>
+            </div>
+            <div class="mt-3 text-end">
+                <a href="{% url 'job_list' %}" class="btn btn-secondary me-2">Clear Filters</a>
+                <button type="submit" class="btn btn-primary">Apply Filters</button>
+            </div>
+        </form>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags == 'warning' %}warning{% elif message.tags == 'success' %}success{% else %}info{% endif %} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="job-listings">
+        {% if jobs %}
+            {% for job in jobs %}
+                <div class="job-listing-card p-4">
+                    <div class="row">
+                        <div class="col-md-9">
+                            <h4 class="mb-1"><a href="{% url 'job_detail' job.id %}" class="text-decoration-none">{{ job.title }}</a></h4>
+                            <p class="text-secondary mb-2">
+                                Posted by: {{ job.recruiter.company_name|default:"A Recruiter" }}
+                                <span class="mx-2">|</span>
+                                Location: {{ job.location }}
+                            </p>
+                            <p class="mb-2">
+                                {{ job.description|truncatewords:30 }}
+                            </p>
+                            <p class="mb-1">
+                                <strong>Skills:</strong>
+                                {% for skill in job.required_skills.all %}
+                                    <span class="badge bg-light text-dark border me-1 skill-badge">{{ skill.name }}</span>
+                                {% empty %}
+                                    <span class="text-secondary fst-italic">Any</span>
+                                {% endfor %}
+                            </p>
+                        </div>
+                        <div class="col-md-3 text-md-end mt-3 mt-md-0">
+                            <p class="fs-5 fw-semibold mb-1">
+                                ₹{{ job.rate_amount|default:"N/A" }}
+                            </p>
+                            <p class="text-secondary mb-2">({{ job.get_rate_type_display }})</p>
+                            <a href="{% url 'job_detail' job.id %}" class="btn btn-outline-primary btn-sm">View Details</a>
+                            <p class="text-secondary mt-2"><small>Posted {{ job.posted_at|timesince }} ago</small></p>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+
+            <nav aria-label="Page navigation" class="mt-5">
+                <ul class="pagination justify-content-center">
+                    {% if jobs.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1&q={{ current_query }}&location={{ current_location }}{% for skill_id in current_skills %}&skills={{ skill_id }}{% endfor %}" aria-label="First">
+                                <span aria-hidden="true">&laquo;&laquo;</span>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ jobs.previous_page_number }}&q={{ current_query }}&location={{ current_location }}{% for skill_id in current_skills %}&skills={{ skill_id }}{% endfor %}" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">&laquo;&laquo;</span></li>
+                        <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+                    {% endif %}
+
+                    <li class="page-item disabled">
+                        <span class="page-link">Page {{ jobs.number }} of {{ jobs.paginator.num_pages }}</span>
+                    </li>
+
+                    {% if jobs.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ jobs.next_page_number }}&q={{ current_query }}&location={{ current_location }}{% for skill_id in current_skills %}&skills={{ skill_id }}{% endfor %}" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                         <li class="page-item">
+                            <a class="page-link" href="?page={{ jobs.paginator.num_pages }}&q={{ current_query }}&location={{ current_location }}{% for skill_id in current_skills %}&skills={{ skill_id }}{% endfor %}" aria-label="Last">
+                                <span aria-hidden="true">&raquo;&raquo;</span>
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+                        <li class="page-item disabled"><span class="page-link">&raquo;&raquo;</span></li>
+                    {% endif %}
+                </ul>
+            </nav>
+
+        {% else %}
+            <div class="alert alert-warning text-center" role="alert">
+                No jobs found matching your criteria. Try broadening your search!
+            </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% endblock %}

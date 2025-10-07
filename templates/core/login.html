@@ -1,0 +1,87 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    {# Ensure you are linking to the correct CSS file #}
+    <link rel="stylesheet" href="{% static 'css/style2.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    {# Inline style for background image using static tag #}
+    <style>
+        body::before {
+            
+            background: url("https://images.unsplash.com/photo-1488866022504-f2584929ca5f?fit=fillmax&fm=jpg&ixid=MnwzNTY3MHwwfDF8YWxsfHx8fHx8fHx8MTY3OTgzOTkwMA&ixlib=rb-4.0.3&q=75") center center / cover no-repeat, #000;
+        }
+    </style>
+</head>
+<body>
+    <a href="{% url 'home' %}" class="back-to-home">
+        <i class="fas fa-arrow-left"></i> Home
+    </a>
+    <div class="wrapper">
+        <div class="form-container">
+
+            {# SWAPPED: Form content now comes first in HTML #}
+            <div class="form-content">
+                <form id="login-form" method="post">
+                    {% csrf_token %}
+                    <h2>Login</h2>
+
+                    <div class="input-field">
+                        <input type="text" name="username" id="id_username" value="{{ form.username.value|default_if_none:'' }}" required>
+                        <label for="id_username">Username</label>
+                    </div>
+                    {% if form.username.errors %}
+                        <div class="error-message">{{ form.username.errors }}</div>
+                    {% endif %}
+                    {% if form.non_field_errors %}
+                        <div class="error-message non-field-error">{{ form.non_field_errors }}</div>
+                    {% endif %}
+
+                    <div class="input-field">
+                        <input type="password" name="password" id="id_password" required>
+                        <label for="id_password">Password</label>
+                    </div>
+                    {% if form.password.errors %}
+                        <div class="error-message">{{ form.password.errors }}</div>
+                    {% endif %}
+
+                    <div class="forget">
+                        {% url 'password_reset' as password_reset_url %}
+                        {% if password_reset_url %}
+                            <a href="{{ password_reset_url }}">Forgot password?</a>
+                        {% endif %}
+                    </div>
+
+                    <button type="submit">Log In</button>
+
+                    <div class="register">
+                        <p>Don't have an account? <a href="{% url 'signup' %}">Register</a></p>
+                    </div>
+                </form>
+            </div> {# End form-content #}
+
+            {# SWAPPED: Image area now comes second in HTML #}
+            <div class="form-image">
+                
+                <img src="https://cdn.pixabay.com/animation/2022/10/25/12/11/12-11-02-585_512.gif" alt="Illustration">
+            </div>
+
+        </div> {# End form-container #}
+    </div> {# End wrapper #}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+          const wrapper = document.querySelector('.wrapper');
+          if (wrapper) {
+          
+            setTimeout(() => {
+              wrapper.classList.add('visible');
+            }, 80); 
+          }
+        });
+    </script>
+
+</body>
+</html>

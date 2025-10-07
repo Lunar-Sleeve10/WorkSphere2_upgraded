@@ -1,0 +1,206 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Applications for {{ job.title }}{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/job_applications_styles.css' %}">
+    
+    {# --- NEW CSS FOR THE GAUGE --- #}
+    <style>
+        .ats-gauge {
+            width: 120px;
+            height: 60px;
+            position: relative;
+            overflow: hidden;
+            margin: 10px auto 0;
+        }
+
+        .ats-gauge::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 10px solid #4a5568;
+            border-bottom-color: #38a169; /* Green part */
+            border-right-color: #38a169;  /* Green part */
+            transform: rotate(-135deg);
+            box-sizing: border-box;
+        }
+        
+        .gauge-needle {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 2px;
+            height: 55px;
+            background: #e2e8f0;
+            transform-origin: bottom center;
+            transform: rotate(-90deg); /* Start at 0% */
+            transition: transform 1.5s cubic-bezier(0.23, 1, 0.32, 1); /* Smooth animation */
+        }
+        
+        .gauge-center {
+             position: absolute;
+             bottom: 0px;
+             left: 50%;
+             width: 10px;
+             height: 10px;
+             background: #cbd5e0;
+             border-radius: 50%;
+             transform: translateX(-50%);
+        }
+
+        .gauge-value {
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .rank-badge {
+            font-size: 1rem;
+            font-weight: bold;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-white mb-0">Applications for "{{ job.title }}"</h2>
+        <a href="{% url 'recruiter_job_list' %}" class="btn btn-outline-secondary btn-sm">&laquo; Back to My Jobs</a>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags == 'success' %}success{% endif %} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    {% if applications %}
+        <p class="text-secondary mb-4">Displaying {{ applications|length }} application{{ applications|pluralize }} ranked by match score.</p>
+
+        {% for application in applications %}
+            <div class="application-card">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8 applicant-info">
+                            <h5 class="mb-1">
+                                {{ application.freelancer.first_name }} {{ application.freelancer.last_name }}
+                            </h5>
+                            <p class="text-secondary mb-1"><small>Applied: {{ application.applied_at|date:"d M Y, P" }}</small></p>
+                            
+                            {% if application.cover_letter %}
+                                <div class="mt-3">
+                                    <strong>Cover Letter:</strong>
+                                    <div class="cover-letter small">
+                                        {{ application.cover_letter|linebreaksbr }}
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-4 text-center">
+                            <h6 class="text-secondary mb-0">Match Score</h6>
+                            
+                            {# --- NEW GAUGE HTML --- #}
+                            <div class="ats-gauge" data-score="{{ application.match_score|default:0 }}">
+                                <div class="gauge-needle"></div>
+                                <div class="gauge-center"></div>
+                                <div class="gauge-value">0%</div>
+                            </div>
+                            
+                            <p class="mt-2 mb-2">
+                                <strong class="rank-badge">Rank: #{{ forloop.counter }}</strong>
+                            </p>
+
+                            {% if application.status == 'PENDING' %}
+                                <div class="actions mt-2">
+                                    <form action="{% url 'update_application_status' application.id %}" method="post" class="action-form">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="status" value="ACCEPTED">
+                                        <button type="submit" class="btn btn-success btn-sm">Accept</button>
+                                    </form>
+                                    <form action="{% url 'update_application_status' application.id %}" method="post" class="action-form">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="status" value="DECLINED">
+                                        <button type="submit" class="btn btn-danger btn-sm">Decline</button>
+                                    </form>
+                                </div>
+                            {% else %}
+                                 <p class="mb-2 mt-3">
+                                    <strong>Status:</strong>
+                                    {% if application.status == 'ACCEPTED' %}
+                                        <span class="badge bg-success status-badge">{{ application.get_status_display }}</span>
+                                    {% elif application.status == 'DECLINED' %}
+                                        <span class="badge bg-danger status-badge">{{ application.get_status_display }}</span>
+                                    {% endif %}
+                                </p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+
+    {% else %}
+        <div class="alert alert-secondary" role="alert">
+            There are currently no applications for this job posting.
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{# --- NEW JAVASCRIPT FOR GAUGE ANIMATION --- #}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const gauges = document.querySelectorAll('.ats-gauge');
+
+    gauges.forEach(gauge => {
+        const score = parseFloat(gauge.dataset.score) || 0;
+        const needle = gauge.querySelector('.gauge-needle');
+        const valueText = gauge.querySelector('.gauge-value');
+        
+        // Map score (0 to 1) to rotation (-90deg to 90deg)
+        const rotation = (score * 180) - 90;
+
+        // Animate needle after a short delay
+        setTimeout(() => {
+            if (needle) {
+                needle.style.transform = `rotate(${rotation}deg)`;
+            }
+        }, 500);
+
+        // Animate the text value counting up
+        let startValue = 0;
+        const endValue = Math.round(score * 100);
+        const duration = 1500; // ms
+        const stepTime = Math.abs(Math.floor(duration / endValue));
+
+        let current = 0;
+        const timer = setInterval(() => {
+            current += 1;
+            if (valueText) {
+                valueText.textContent = `${current}%`;
+            }
+            if (current === endValue) {
+                clearInterval(timer);
+            }
+        }, stepTime);
+    });
+});
+</script>
+{% endblock %}

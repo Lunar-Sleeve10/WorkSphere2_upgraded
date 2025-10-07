@@ -1,0 +1,84 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}My Job Postings{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/recruiter_job_list_styles.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-white">My Job Postings</h2>
+        <a href="{% url 'create_job' %}" class="btn btn-primary">Post a New Job</a>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags == 'warning' %}warning{% elif message.tags == 'success' %}success{% else %}info{% endif %} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    {% if jobs %}
+        <div class="list-group">
+            {% for job in jobs %}
+                <div class="job-card">
+                    <div class="card-body">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1 card-title">{{ job.title }}</h5>
+                            <small class="text-secondary">Posted: {{ job.posted_at|date:"d M Y" }}</small>
+                        </div>
+                        <p class="mb-1"><strong class="text-secondary">Location:</strong> {{ job.location }}</p>
+                        <p class="mb-1">
+                            <strong class="text-secondary">Rate:</strong>
+                            ₹{{ job.rate_amount|default:"N/A" }}
+                            ({{ job.get_rate_type_display }})
+                        </p>
+                        <p class="mb-1">
+                            <strong class="text-secondary">Skills:</strong>
+                            {% for skill in job.required_skills.all %}
+                                <span class="badge bg-secondary me-1">{{ skill.name }}</span>
+                            {% empty %}
+                                <span class="text-secondary fst-italic">None specified</span>
+                            {% endfor %}
+                        </p>
+                        <p class="mb-1">
+                            <strong class="text-secondary">Status:</strong>
+                            {% if job.accepted_application_list %}
+                                <span class="badge bg-info">Filled (Accepted)</span>
+                            {% elif job.is_active %}
+                                <span class="badge bg-success">Active</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Inactive</span>
+                            {% endif %}
+                        </p>
+                        <small class="text-secondary">Last updated: {{ job.updated_at|timesince }} ago</small>
+
+                        <hr>
+                        <div class="job-actions">
+                            <a href="{% url 'view_job_applications' job.id %}" class="btn btn-info btn-sm">View Applications</a>
+                            <a href="{% url 'edit_job' job.id %}" class="btn btn-warning btn-sm {% if job.accepted_application_list %}disabled{% endif %}">Edit Job</a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-secondary mt-4" role="alert">
+            You haven't posted any jobs yet. <a href="{% url 'create_job' %}" class="alert-link">Post your first job now!</a>
+        </div>
+    {% endif %}
+
+     <div class="text-center mt-4">
+        <a href="{% url 'recruiter_dashboard' %}" class="btn btn-outline-secondary">Back to Dashboard</a>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% endblock %}

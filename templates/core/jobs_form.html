@@ -1,0 +1,51 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}{% if is_editing %}Edit Job Posting{% else %}Create Job Posting{% endif %}{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/job_form_styles.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-7">
+            <div class="card p-4 p-md-5 shadow-sm">
+                <h2 class="card-title text-center mb-4">
+                    {% if is_editing %}Edit Job Posting{% else %}Post a New Job{% endif %}
+                </h2>
+
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags == 'warning' %}warning{% elif message.tags == 'success' %}success{% else %}info{% endif %} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    <div class="form-field-spacing">
+                        {{ form.as_p }}
+                    </div>
+                    <div class="d-grid gap-2 mt-4">
+                         <button type="submit" class="btn btn-primary btn-lg">
+                            {% if is_editing %}Update Job{% else %}Post Job{% endif %}
+                         </button>
+                    </div>
+                </form>
+
+                <div class="text-center mt-3">
+                    <a href="{% url 'recruiter_job_list' %}" class="btn btn-secondary btn-sm">Cancel and View My Jobs</a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% endblock %}

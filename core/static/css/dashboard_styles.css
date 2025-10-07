@@ -1,0 +1,215 @@
+/* core/static/core/css/f_dashboard_updated_styles.css */
+
+body {
+    margin-top: 20px;
+    /* Bluish-black gradient background */
+    background: linear-gradient(to right, #1a202c, #2c3e50); /* Darker gradient */
+    color: #e2e8f0; /* Lighter base text color */
+}
+
+.main-body {
+    padding: 15px;
+}
+
+/* Card Styling */
+.card {
+    box-shadow: 0 1px 3px 0 rgba(0,0,0,.1), 0 1px 2px 0 rgba(0,0,0,.06);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    word-wrap: break-word;
+    /* Darker card background */
+    background-color: #2d3748; /* Dark blue-gray */
+    background-clip: border-box;
+    border: 1px solid rgba(255, 255, 255, 0.1); /* Subtle border */
+    border-radius: .35rem;
+    color: #e2e8f0; /* Light text within cards */
+    margin-bottom: 1rem; /* Add margin between cards */
+}
+
+.card-body {
+    flex: 1 1 auto;
+    min-height: 1px;
+    padding: 1.5rem;
+}
+
+/* Grid Gutters */
+.gutters-sm {
+    margin-right: -8px;
+    margin-left: -8px;
+}
+.gutters-sm > .col, .gutters-sm > [class*=col-] {
+    padding-right: 8px;
+    padding-left: 8px;
+}
+
+/* Margin */
+.mb-3 {
+    margin-bottom: 1rem !important;
+}
+
+/* Profile Picture */
+.profile-picture-lg {
+    width: 150px;
+    height: 150px;
+    object-fit: cover; /* Ensure image covers the area */
+}
+
+/* Text Colors */
+.text-secondary {
+    color: #a0aec0 !important; /* Lighter gray */
+}
+.text-primary {
+     color: #63b3ed !important; /* Light blue */
+}
+.text-info {
+    color: #4fd1c5 !important; /* Teal */
+}
+.text-danger {
+    color: #f56565 !important; /* Light red */
+}
+
+/* List Group (for potential future use, like social links) */
+.list-group-flush > .list-group-item {
+    background-color: transparent;
+    border-color: rgba(255, 255, 255, 0.1);
+    color: #e2e8f0;
+    padding-left: 0; /* Align with card body padding */
+    padding-right: 0;
+}
+.list-group-item h6 {
+    color: #cbd5e0; /* Slightly lighter heading */
+    display: flex; /* Align icon and text */
+    align-items: center;
+}
+.list-group-item svg {
+    margin-right: 0.5rem; /* Space after icon */
+    width: 20px; /* Consistent icon size */
+    height: 20px;
+}
+
+/* Breadcrumbs (if you add them) */
+.main-breadcrumb .breadcrumb {
+    background-color: transparent;
+    padding: 0;
+    margin-bottom: 1.5rem;
+    border: none;
+}
+.main-breadcrumb .breadcrumb-item a {
+    color: #63b3ed;
+    text-decoration: none;
+}
+.main-breadcrumb .breadcrumb-item.active {
+    color: #a0aec0;
+}
+.main-breadcrumb .breadcrumb-item + .breadcrumb-item::before {
+    color: #a0aec0;
+}
+
+/* Buttons */
+.btn {
+    margin-right: 0.5rem; /* Add some default spacing */
+     margin-bottom: 0.5rem;
+}
+.btn-primary {
+    background-color: #3182ce; border-color: #3182ce; color: #fff;
+}
+.btn-primary:hover {
+    background-color: #2b6cb0; border-color: #2b6cb0;
+}
+.btn-outline-primary {
+    color: #63b3ed; border-color: #63b3ed;
+}
+.btn-outline-primary:hover {
+    color: #1a202c; background-color: #63b3ed; border-color: #63b3ed;
+}
+.btn-info {
+     background-color: #4fd1c5; border-color: #4fd1c5; color: #1a202c;
+}
+.btn-info:hover {
+     background-color: #38b2ac; border-color: #38b2ac;
+}
+.btn-warning {
+     background-color: #f6e05e; border-color: #f6e05e; color: #1a202c;
+}
+.btn-warning:hover {
+     background-color: #f6ad55; border-color: #f6ad55;
+}
+.btn-danger {
+     background-color: #f56565; border-color: #f56565; color: #fff;
+}
+.btn-danger:hover {
+     background-color: #e53e3e; border-color: #e53e3e;
+}
+.btn-outline-danger {
+    color: #f56565; border-color: #f56565;
+}
+.btn-outline-danger:hover {
+    color: #fff; background-color: #f56565; border-color: #f56565;
+}
+.btn-secondary {
+    background-color: #4a5568; border-color: #4a5568; color: #fff;
+}
+.btn-secondary:hover {
+    background-color: #2d3748; border-color: #2d3748;
+}
+.btn-success {
+    background-color: #48bb78; border-color: #48bb78; color: #fff;
+}
+.btn-success:hover {
+     background-color: #38a169; border-color: #38a169;
+}
+
+/* Specific adjustments for profile layout */
+.profile-actions .btn, .profile-actions form {
+    display: inline-block;
+    margin-bottom: 0.5rem;
+}
+.profile-actions form {
+    padding: 0;
+}
+
+/* Accepted Gigs Card */
+.gig-card {
+    background-color: #4a5568; /* Slightly different background for gig cards */
+    border-color: rgba(255, 255, 255, 0.15);
+    margin-bottom: 1rem;
+}
+.gig-card .card-title {
+    color: #e2e8f0;
+}
+.gig-card .card-subtitle {
+    color: #a0aec0;
+}
+.gig-card .card-text {
+    color: #cbd5e0;
+}
+.gig-card .card-link {
+    color: #90cdf4; /* Lighter blue for links */
+}
+
+/* Ensure hr is visible */
+hr {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Skill badges */
+.skill-badge {
+    background-color: #4a5568; /* Match gig card bg */
+    color: #e2e8f0;
+    border: 1px solid #a0aec0; /* Add subtle border */
+    padding: .35em .65em;
+    font-size: 0.85em;
+}
+
+.bg-img-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: -1;
+    overflow: hidden;
+}
+

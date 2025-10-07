@@ -1,0 +1,127 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}WorkSphere - Home{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/home_styles.css' %}">
+    {# Add styles for the new video section #}
+    <style>
+      .video-section {
+        padding: 40px 0; 
+        width: 100%; 
+        display: flex; 
+        justify-content: center;
+        margin-top: 2rem; 
+      }
+      .video-content {
+         
+         max-width: 800px;
+         width: 90%;
+         text-align: center; 
+      }
+      
+      .video-content h2 {
+          color: #fff; 
+          margin-bottom: 25px;
+          font-weight: 600;
+          text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.5); 
+      }
+      .video-wrapper video {
+         
+          display: block; 
+          width: 100%; 
+          height: auto;
+          border-radius: 10px; 
+          box-shadow: 0 5px 20px rgba(0, 0, 0, 0.25); 
+      }
+
+      /* Responsive adjustments */
+       @media (max-width: 768px) {
+           .video-section {
+               padding: 25px 0;
+           }
+           .video-content {
+               width: 95%; 
+           }
+           .video-content h2 {
+                margin-bottom: 20px;
+                font-size: 1.8rem; 
+           }
+       }
+    </style>
+{% endblock %}
+
+{% block content %}
+{# Background Image Container #}
+<div class="bg-img-container">
+    {# Assuming you still want the background image #}
+    {# Fallback if using media folder: <img class="bg-img" src="https://images.unsplash.com/photo-1488866022504-f2584929ca5f?fit=fillmax&fm=jpg&ixid=MnwzNTY3MHwwfDF8YWxsfHx8fHx8fHx8MTY3OTgzOTkwMA&ixlib=rb-4.0.3&q=75" alt="Background">}
+     <img class="bg-img" src="https://images.unsplash.com/photo-1488866022504-f2584929ca5f?fit=fillmax&fm=jpg&ixid=MnwzNTY3MHwwfDF8YWxsfHx8fHx8fHx8MTY3OTgzOTkwMA&ixlib=rb-4.0.3&q=75" alt="Background">
+</div>
+
+{# Override main-content class for specific homepage layout #}
+<div class="main-content home-main">
+
+    {# Hero Section with Title #}
+    <section class="hero-section">
+        <div class="container">
+            <h1>WorkSphere</h1>
+            <p class="lead">Connecting Talent with Opportunity.</p>
+        </div>
+    </section>
+
+    {# About Section #}
+    <section class="about-section">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="about-glassy-card text-center">
+                        <h2>About WorkSphere</h2>
+                        <p>
+                            WorkSphere is a modern platform designed to bridge the gap between skilled freelance professionals
+                            and businesses seeking talent for their projects. Find opportunities that match your expertise.
+                            For businesses, WorkSphere offers a streamlined way to post jobs and connect with freelancers.
+                        </p>
+                        <p>
+                            Join our community today!
+                        </p>
+                         <div class="mt-4">
+                             <a href="{% url 'signup' %}" class="btn btn-light">Get Started</a>
+                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {# ------------- NEW VIDEO SECTION ------------- #}
+    <section class="video-section">
+        <div class="video-content">
+             {# Optional: Add a heading for the video #}
+             <h2>Discover WorkSphere</h2>
+    
+             <div class="video-wrapper">
+                 <video
+                    poster="{% static 'video_poster.jpg' %}" {# Path to your poster image #}
+                    {# REMOVED controls #}
+                    playsinline     {# Helps with playback on iOS #}
+                    autoplay        {# ADDED: Start playing automatically #}
+                    muted           {# ADDED: Essential for autoplay to work reliably #}
+                    loop            {# ADDED: Make the video repeat #}
+                    preload="metadata" {# Keep this or change to "auto" if needed #}
+                 >
+                     <source src="{% static 'homepagevideo.mp4' %}" type="video/mp4">
+                   
+                 </video>
+             </div>
+        </div>
+    </section>
+
+
+</div> 
+{% endblock %}
+
+{% block extra_js %}
+{# Add any home-page specific JS here if needed #}
+{% endblock %}
