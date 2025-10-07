@@ -5,7 +5,7 @@
 
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'css/job_detail_styles.css' %}">
-    {# --- NEW CSS FOR THE ATS GAUGE --- #}
+    {# --- ATS GAUGE CSS --- #}
     <style>
         .ats-gauge {
             width: 120px;
@@ -63,18 +63,50 @@
 
 {% block content %}
 <div class="container mt-5 mb-5">
-    {# ... (existing job header and details) ... #}
-    
     <div class="row justify-content-center">
         <div class="col-lg-8">
             <div class="card p-4 p-md-5 shadow-sm">
-                {# ... (existing job description, skills, etc.) ... #}
+
+                <div class="job-header text-center mb-4">
+                    <h2 class="card-title">{{ job.title }}</h2>
+                    <h5 class="text-secondary">{{ job.recruiter.company_name }}</h5>
+                    <p class="lead">{{ job.location }}</p>
+                    <p class="text-muted small">Posted on: {{ job.posted_at|date:"F d, Y" }}</p>
+                </div>
+
+                <div class="detail-section">
+                    <h4 class="detail-label">Job Description</h4>
+                    <p>{{ job.description|linebreaks }}</p>
+                </div>
+
+                <div class="detail-section">
+                    <h4 class="detail-label">Required Skills</h4>
+                    <div class="skills-container">
+                        {% for skill in job.required_skills.all %}
+                            <span class="skill-badge">{{ skill.name }}</span>
+                        {% empty %}
+                            <p>No specific skills listed.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="row detail-section">
+                    <div class="col-md-6">
+                        <h4 class="detail-label">Compensation Type</h4>
+                        <p>{{ job.get_rate_type_display }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h4 class="detail-label">Rate</h4>
+                        <p>₹{{ job.rate_amount|floatformat:2 }}</p>
+                    </div>
+                </div>
+
                 <hr>
 
                 <div class="detail-section application-form text-center mt-4">
-                    {% if user.is_authenticated and is_freelancer %}
+                    {% if user.is_authenticated and user.is_freelancer %}
                         
-                        {# --- NEW ATS SCORE SECTION --- #}
+                        {# --- ATS SCORE SECTION (Unchanged) --- #}
                         <div class="card p-3 mb-4" style="background-color: #4a5568;">
                             <h5 class="detail-label mb-2">Check Your Resume's ATS Score</h5>
                             <p class="text-secondary small mb-3">See how well your uploaded resume matches this job.</p>
@@ -106,7 +138,7 @@
                                 <button type="submit" class="btn btn-primary btn-lg">Submit Application</button>
                             </form>
                         {% endif %}
-                    {% elif user.is_authenticated and not is_freelancer %}
+                    {% elif user.is_authenticated and not user.is_freelancer %}
                         <p class="text-secondary"><em>Only freelancers can apply for jobs.</em></p>
                     {% else %}
                         <p class="text-secondary"><em>Please <a href="{% url 'login' %}?next={{ request.path }}">log in</a> as a freelancer to apply.</em></p>
@@ -114,13 +146,16 @@
                 </div>
 
             </div>
-            {# ... (existing back to job listings link) ... #}
+            <div class="text-center mt-4">
+                <a href="{% url 'job_list' %}" class="btn btn-secondary">Back to Job Listings</a>
+            </div>
         </div>
     </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
+{# ... Your existing JavaScript remains completely unchanged ... #}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const atsButton = document.getElementById('check-ats-score-btn');
@@ -129,7 +164,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const atsBtnText = document.getElementById('ats-btn-text');
     const atsSpinner = document.getElementById('ats-spinner');
     
-    // Function to get CSRF token from cookies
     function getCookie(name) {
         let cookieValue = null;
         if (document.cookie && document.cookie !== '') {
@@ -149,7 +183,6 @@ document.addEventListener('DOMContentLoaded', function() {
         atsButton.addEventListener('click', function() {
             const url = this.dataset.url;
             
-            // Show loading state
             atsBtnText.textContent = 'Analyzing...';
             atsSpinner.classList.remove('d-none');
             atsButton.disabled = true;
@@ -175,7 +208,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     atsDisplay.style.display = 'block';
                     const gauge = atsDisplay.querySelector('.ats-gauge');
                     animateGauge(gauge, data.score);
-                    atsButton.style.display = 'none'; // Hide button after successful check
+                    atsButton.style.display = 'none';
                 }
             })
             .catch(error => {

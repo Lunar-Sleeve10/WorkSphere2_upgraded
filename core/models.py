@@ -27,6 +27,10 @@ class FreelancerData(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE,primary_key = True)
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
+    # --- ADDED FIELDS START ---
+    email = models.EmailField(max_length=254, blank=True)
+    linkedin_url = models.URLField(max_length=200, blank=True)
+    # --- ADDED FIELDS END ---
     phone_number = models.CharField(max_length=25)
     profile_summary = models.TextField(blank=True)
     location = models.CharField(max_length=100)

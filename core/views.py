@@ -290,44 +290,32 @@ def job_list(request):
         'current_skills': skill_ids,
     }
     return render(request, 'core/job_list.html', context)
-
 @login_required
-def job_detail(request, job_id):
-    job = get_object_or_404(Job, id=job_id)
-    freelancer_profile = None
+def job_detail(request, job_id): # CHANGED from 'pk' to 'job_id'
+    job = get_object_or_404(Job, pk=job_id) # CHANGED from 'pk=pk' to 'pk=job_id'
+    
+    # Initialize variables
+    has_applied = False
+    freelancer_profile_exists = False
+    user_type = 'anonymous'
 
-    # First, check if the logged-in user is a freelancer at all
-    if not request.user.is_freelancer:
-        messages.error(request, "Only users with a freelancer account can view and apply for jobs.")
-        return redirect('browse_jobs')
-
-    # If they are a freelancer, try to get their completed profile
-    try:
-        freelancer_profile = FreelancerData.objects.get(user=request.user)
-    except FreelancerData.DoesNotExist:
-        # Give a MORE HELPFUL error message
-        messages.warning(request, "You must create your freelancer profile before you can apply for a job.")
-        # Redirect them to the page where they can fix the problem
-        return redirect('freelanceredit-profile') 
-
-    # Check if this freelancer has already applied
-    has_applied = Application.objects.filter(job=job, freelancer=freelancer_profile).exists()
-
-    # Handle the application form submission (this is a basic example)
-    if request.method == 'POST':
-        if not has_applied:
-            # Assuming a simple application with no form for now
-            Application.objects.create(job=job, freelancer=freelancer_profile)
-            messages.success(request, "You have successfully applied for this job!")
-            return redirect('job_detail', job_id=job.id)
-        else:
-            messages.error(request, "You have already applied for this job.")
+    if request.user.is_authenticated:
+        if request.user.is_freelancer:
+            user_type = 'freelancer'
+            if FreelancerData.objects.filter(user=request.user).exists():
+                freelancer_profile_exists = True
+                freelancer_profile = FreelancerData.objects.get(user=request.user)
+                has_applied = Application.objects.filter(job=job, freelancer=freelancer_profile).exists()
+        
+        elif request.user.is_recruiter:
+            user_type = 'recruiter'
 
     context = {
         'job': job,
-        'has_applied': has_applied
+        'has_applied': has_applied,
+        'freelancer_profile_exists': freelancer_profile_exists,
+        'user_type': user_type,
     }
-    
     return render(request, 'core/job_detail.html', context)
 
 @login_required
@@ -371,6 +359,9 @@ def update_application_status(request, application_id):
 # ==============================================================================
 # AJAX & UTILITY VIEWS
 # ==============================================================================
+import re # Make sure 're' is imported at the top of your views.py file
+
+# ... (keep all your other imports and views) ...
 
 @login_required
 @require_POST
@@ -413,16 +404,13 @@ def parse_resume_view(request):
     
     if nlp:
         # --- NAME HEURISTIC ---
-        # 1. Look for a PERSON entity in the first ~300 characters of the resume
         first_part_of_resume = extracted_text[:300]
         doc_first_part = nlp(first_part_of_resume)
         names = [ent.text for ent in doc_first_part.ents if ent.label_ == 'PERSON']
         
         if names:
-            # Often the first person found at the top is the correct one
             formatted_data['name'] = names[0]
         else:
-            # Fallback to searching the whole document if no name is at the top
             doc_full = nlp(extracted_text)
             full_doc_names = [ent.text for ent in doc_full.ents if ent.label_ == 'PERSON']
             if full_doc_names:
@@ -431,8 +419,17 @@ def parse_resume_view(request):
         # --- Other fields ---
         emails = re.findall(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b', extracted_text)
         if emails: formatted_data['email'] = emails[0]
+        
         phones = re.findall(r'\(?\b\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b', extracted_text)
         if phones: formatted_data['mobile_number'] = re.sub(r'\D', '', phones[0])
+
+        # ==================== MODIFIED SECTION START ====================
+        # Use regex to find LinkedIn URL
+        linkedin_match = re.search(r'linkedin\.com/in/[\w-]+', extracted_text, re.IGNORECASE)
+        if linkedin_match:
+            # Reconstruct the full URL to ensure it's clickable
+            formatted_data['linkedin_url'] = f"https://www.{linkedin_match.group(0)}"
+        # ===================== MODIFIED SECTION END =====================
 
     # Use custom model for skills
     if custom_nlp:
@@ -445,7 +442,6 @@ def parse_resume_view(request):
         return JsonResponse({'error': 'Could not extract relevant information.'}, status=400)
 
     return JsonResponse({'success': True, 'data': formatted_data})
-
 
 @login_required
 @require_POST
