@@ -8,10 +8,7 @@ import logging
 from pathlib import Path
 
 def convert_resume_dataset(filepath):
-    """
-    Converts the "Resume Entities for NER" JSON dataset.
-    Extracts 'Skills' as SKILL and 'Name' as PERSON entities.
-    """
+    
     nlp = spacy.blank("en")
     db = DocBin()
     

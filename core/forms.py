@@ -1,4 +1,3 @@
-# In core/forms.py
 
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
@@ -75,7 +74,6 @@ class FreelancerDataForm(forms.ModelForm):
         if commit:
             instance.save()
             
-            # Save the M2M relationship for skills from the text input
             submitted_skill_names_str = self.cleaned_data.get('skills', '')
             submitted_skill_names = {name.strip().lower() for name in submitted_skill_names_str.split(',') if name.strip()}
 
@@ -84,7 +82,6 @@ class FreelancerDataForm(forms.ModelForm):
                 skill_obj, created = Skill.objects.get_or_create(name=name)
                 instance.skills.add(skill_obj)
         
-        # This is required by Django's ModelForm save method convention
         self.save_m2m = lambda: None
         
         return instance

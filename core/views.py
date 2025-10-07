@@ -1,5 +1,3 @@
-# In core/views.py
-
 import os
 import re
 import tempfile
@@ -22,14 +20,12 @@ from django.views.decorators.http import require_POST
 from .forms import SignUpForm, LoginForm, FreelancerDataForm, RecruiterDataForm, JobPostForm
 from .models import FreelancerData, Application, RecruiterData, Job, Skill
 
-# --- Recommendation Engine Imports ---
 try:
     from recommendations.recommender import get_job_recommendations, rank_applications, get_resume_ats_score
 except ImportError:
     def get_job_recommendations(freelancer): return []
     def rank_applications(job): return Application.objects.filter(job=job)
     def get_resume_ats_score(job_text, resume_text): return 0
-
 
 try:
     from pdfminer.high_level import extract_text as extract_pdf_text
@@ -39,41 +35,27 @@ except ImportError:
 try:
     import docx
 except ImportError:
-    print("Warning: python-docx not installed. DOCX parsing disabled.")
     docx = None
 
 try:
     from PIL import Image
     import pytesseract
-    # pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 except ImportError:
-    print("Warning: Pillow or pytesseract not installed. OCR disabled.")
     Image = None
     pytesseract = None
 except FileNotFoundError:
-    print("ERROR: Tesseract executable not found. OCR disabled.")
     Image = None
     pytesseract = None
 
-# --- spaCy Model Loading ---
 try:
     nlp = spacy.load('en_core_web_sm')
-    print("Default spaCy model 'en_core_web_sm' loaded.")
 except (ImportError, OSError):
     nlp = None
-    print("Warning: Default spaCy model not found.")
 
 try:
     custom_nlp = spacy.load("./custom_ner_model")
-    print("Custom NER model for skills loaded successfully.")
 except (IOError):
     custom_nlp = None
-    print("Warning: Custom NER model not found.")
-
-
-# ==============================================================================
-# CORE & AUTHENTICATION VIEWS
-# ==============================================================================
 
 def home(request):
     return render(request, "core/home.html")
@@ -121,10 +103,6 @@ def delete_account_view(request):
     messages.success(request, f"Account '{username_deleted}' has been permanently deleted.")
     return redirect('home')
 
-# ==============================================================================
-# FREANCER VIEWS
-# ==============================================================================
-
 @login_required
 def freelancer_dashboard(request):
     try:
@@ -167,7 +145,6 @@ def create_freelancer_profile(request):
             return redirect('freelancer_dashboard')
     else:
         if is_editing:
-            # Pass existing data as initial data, but leave skills blank
             initial_data = {
                 'first_name': freelancer_instance.first_name,
                 'last_name': freelancer_instance.last_name,
@@ -224,11 +201,6 @@ def add_freelancer_skill(request):
         return JsonResponse({'success': False, 'error': 'Freelancer profile not found.'}, status=404)
     except Exception as e:
         return JsonResponse({'success': False, 'error': f'An unexpected error occurred: {e}'}, status=500)
-
-
-# ==============================================================================
-# RECRUITER & JOB VIEWS
-# ==============================================================================
 
 @login_required
 def recruiter_dashboard(request):
@@ -294,11 +266,6 @@ def recruited_job_list(request):
     context = {'jobs': jobs}
     return render(request, 'core/recruiter_job_list.html', context)
 
-
-# ==============================================================================
-# PUBLIC JOB & APPLICATION VIEWS
-# ==============================================================================
-
 def job_list(request):
     queryset = Job.objects.filter(is_active=True).select_related('recruiter').prefetch_related('required_skills')
     query = request.GET.get('q', '').strip()
@@ -324,11 +291,10 @@ def job_list(request):
         'current_skills': skill_ids,
     }
     return render(request, 'core/job_list.html', context)
+
 @login_required
-def job_detail(request, job_id): # CHANGED from 'pk' to 'job_id'
-    job = get_object_or_404(Job, pk=job_id) # CHANGED from 'pk=pk' to 'pk=job_id'
-    
-    # Initialize variables
+def job_detail(request, job_id):
+    job = get_object_or_404(Job, pk=job_id)
     has_applied = False
     freelancer_profile_exists = False
     user_type = 'anonymous'
@@ -340,7 +306,6 @@ def job_detail(request, job_id): # CHANGED from 'pk' to 'job_id'
                 freelancer_profile_exists = True
                 freelancer_profile = FreelancerData.objects.get(user=request.user)
                 has_applied = Application.objects.filter(job=job, freelancer=freelancer_profile).exists()
-        
         elif request.user.is_recruiter:
             user_type = 'recruiter'
 
@@ -390,13 +355,6 @@ def update_application_status(request, application_id):
         messages.error(request, "Invalid status update requested.")
     return redirect('view_job_applications', job_id=application.job.id)
 
-# ==============================================================================
-# AJAX & UTILITY VIEWS
-# ==============================================================================
-import re # Make sure 're' is imported at the top of your views.py file
-
-# ... (keep all your other imports and views) ...
-
 @login_required
 @require_POST
 def parse_resume_view(request):
@@ -404,14 +362,12 @@ def parse_resume_view(request):
     if not uploaded_file:
         return JsonResponse({'error': 'No resume file provided.'}, status=400)
 
-    # File Validation
     file_extension = os.path.splitext(uploaded_file.name)[1].lower()
     if file_extension not in ['.pdf', '.docx', '.jpg', '.jpeg', '.png']:
         return JsonResponse({'error': 'Invalid file type.'}, status=400)
     if uploaded_file.size > 5 * 1024 * 1024:
         return JsonResponse({'error': 'File size exceeds 5MB.'}, status=400)
 
-    # Text Extraction
     extracted_text = ""
     try:
         with tempfile.NamedTemporaryFile(delete=False, suffix=file_extension) as temp_file:
@@ -433,11 +389,9 @@ def parse_resume_view(request):
     if not extracted_text.strip():
         return JsonResponse({'error': 'Could not extract any text from the file.'}, status=400)
 
-    # --- NLP Processing with Fine-Tuning for Name ---
     formatted_data = {}
     
     if nlp:
-        # --- NAME HEURISTIC ---
         first_part_of_resume = extracted_text[:300]
         doc_first_part = nlp(first_part_of_resume)
         names = [ent.text for ent in doc_first_part.ents if ent.label_ == 'PERSON']
@@ -450,30 +404,23 @@ def parse_resume_view(request):
             if full_doc_names:
                 formatted_data['name'] = full_doc_names[0]
 
-        # --- Other fields ---
         emails = re.findall(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b', extracted_text)
         if emails: formatted_data['email'] = emails[0]
         
         phones = re.findall(r'\(?\b\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b', extracted_text)
         if phones: formatted_data['mobile_number'] = re.sub(r'\D', '', phones[0])
 
-        # ==================== MODIFIED SECTION START ====================
-        # Use regex to find LinkedIn URL
         linkedin_match = re.search(r'linkedin\.com/in/[\w-]+', extracted_text, re.IGNORECASE)
         if linkedin_match:
-            # Reconstruct the full URL to ensure it's clickable
             formatted_data['linkedin_url'] = f"https://www.{linkedin_match.group(0)}"
-        # ===================== MODIFIED SECTION END =====================
 
-    # Use custom model for skills
     if custom_nlp:
         custom_doc = custom_nlp(extracted_text)
         found_skills = sorted(list({ent.text for ent in custom_doc.ents if ent.label_ == "SKILL"}))
         if found_skills:
-            # Clean the skills string: remove titles and extra text
             skills_text = ", ".join(found_skills)
-            skills_text = re.sub(r'.*:\s*', '', skills_text) # Remove titles like "Programming Languages:"
-            skills_text = re.sub(r'\s*', '', skills_text) # Remove bullet points
+            skills_text = re.sub(r'.*:\s*', '', skills_text)
+            skills_text = re.sub(r'\s*', '', skills_text)
             formatted_data['skills'] = skills_text
     
     if not formatted_data:
@@ -488,12 +435,9 @@ def get_freelancer_ats_view(request, job_id):
         job = get_object_or_404(Job, pk=job_id)
         freelancer = get_object_or_404(FreelancerData, user=request.user)
 
-        # --- MODIFICATION START ---
-        # 1. Combine Profile Data
         profile_skills = ' '.join([skill.name for skill in freelancer.skills.all()])
         profile_text = f"{freelancer.profile_summary} {profile_skills}"
 
-        # 2. Extract Resume Text (if resume exists)
         resume_text = ""
         if freelancer.resume and freelancer.resume.path:
             try:
@@ -507,10 +451,8 @@ def get_freelancer_ats_view(request, job_id):
                 elif file_extension in ['.jpg', '.jpeg', '.png'] and Image and pytesseract:
                     resume_text = pytesseract.image_to_string(Image.open(resume_path))
             except FileNotFoundError:
-                # It's okay if the resume file is missing; we can still score based on the profile
                 pass
         
-        # 3. Combine all text for scoring
         combined_text = f"{profile_text} {resume_text}"
 
         if not combined_text.strip():
@@ -520,7 +462,6 @@ def get_freelancer_ats_view(request, job_id):
         
         score = get_resume_ats_score(job_text, combined_text)
         return JsonResponse({'success': True, 'score': score})
-        # --- MODIFICATION END ---
 
     except Exception as e:
         print(f"Error in ATS score calculation: {e}")

@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // --- SKILL DELETION ---
     const skillsList = document.getElementById('current-skills-list');
     const deleteStatus = document.getElementById('skill-delete-status');
     const removeSkillUrl = document.getElementById('remove-skill-url').value;

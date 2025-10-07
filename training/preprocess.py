@@ -7,10 +7,8 @@ import logging
 from pathlib import Path
 import warnings
 
-# Suppress pandas warning in the output
 warnings.filterwarnings("ignore", category=UserWarning, module='pandas')
 
-# --- All your conversion functions are here ---
 
 def convert_resume_dataset(nlp, filepath):
     db = DocBin()
@@ -99,7 +97,7 @@ def create_training_data():
         combined_db.add(doc)
         
     combined_db.to_disk(output_path)
-    print(f"\n✅ Success! Combined data and saved {len(combined_db)} documents to '{output_path}'.")
+    print(f"\n Success! Combined data and saved {len(combined_db)} documents to '{output_path}'.")
     print("You can now run the training script.")
 
 if __name__ == '__main__':

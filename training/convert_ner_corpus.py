@@ -10,12 +10,10 @@ import random
 from pathlib import Path
 import warnings
 
-# Suppress pandas warning in the output
 warnings.filterwarnings("ignore", category=UserWarning, module='pandas')
 
 
 def convert_resume_dataset(filepath):
-    """Converts the 'Resume Entities for NER' JSON dataset."""
     nlp = spacy.blank("en")
     db = DocBin()
     try:
@@ -51,7 +49,6 @@ def convert_resume_dataset(filepath):
         return None
 
 def convert_general_ner_dataset(filepath):
-    """Converts the general NER corpus CSV dataset."""
     nlp = spacy.blank("en")
     db = DocBin()
     try:
@@ -92,19 +89,17 @@ def convert_general_ner_dataset(filepath):
         return None
 
 def train_unified_model():
-    """Main function to load data, train the model, and save it."""
-    # Check for GPU and prefer it
+   
     if spacy.prefer_gpu():
-        print("✅ Successfully enabled GPU. Training on NVIDIA GPU.")
+        print(" Successfully enabled GPU. Training on NVIDIA GPU.")
     else:
-        print("⚠️ Could not enable GPU. Training on CPU.")
+        print(" Could not enable GPU. Training on CPU.")
 
-    # Paths are relative to the current working directory
+
     resume_json_path = 'Entity Recognition in Resumes.json'
     general_csv_path = 'ner_dataset.csv'
     output_dir = Path.cwd() / 'custom_ner_model'
 
-    # --- 1. Load and Combine Data ---
     print("\nLoading and converting resume dataset...")
     doc_bin_resumes = convert_resume_dataset(resume_json_path)
     
@@ -128,13 +123,13 @@ def train_unified_model():
         print("No training data found. Exiting.")
         return
 
-    # --- 2. Setup Model ---
+
     nlp = spacy.blank("en")
     ner = nlp.add_pipe("ner", last=True)
     ner.add_label("SKILL")
     ner.add_label("PERSON")
 
-    # --- 3. Train Model ---
+   
     print("\nStarting unified model training with batching...")
     optimizer = nlp.begin_training()
 
@@ -142,8 +137,6 @@ def train_unified_model():
         random.shuffle(docs)
         losses = {}
         
-        # Use a larger, fixed batch size to better utilize the GPU
-        # You can experiment with 128, 256, 512, etc. to find the fastest speed
         batches = minibatch(docs, size=256)
         
         for batch in batches:
@@ -153,14 +146,12 @@ def train_unified_model():
                 example = Example.from_dict(doc, {"entities": entities})
                 examples.append(example)
 
-            # Update the model with the batch of examples
             if examples:
                 nlp.update(examples, sgd=optimizer, losses=losses, drop=0.35)
         
         print(f"Iteration {iteration}, Losses: {losses}")
 
-    # --- 4. Save Model ---
-    # Create the output directory if it doesn't exist
+   
     if not output_dir.exists():
         output_dir.mkdir(parents=True)
         
@@ -168,6 +159,6 @@ def train_unified_model():
     print(f"\nUnified custom model saved to '{output_dir}' directory.")
 
 
-# --- Run the main function ---
+
 if __name__ == '__main__':
     train_unified_model()
